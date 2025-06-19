@@ -31,7 +31,7 @@ google_creds_dict = {
   "type": st.secrets["gcp_service_account"]["type"],
   "project_id": st.secrets["gcp_service_account"]["project_id"],
   # ... y así con todos los campos de tu archivo credentials.json
-  "private_key": st.secrets["gcp_service_account"]["private_key"],
+  "private_key": st.secrets["gcp_service_account"]["private_key"].replace('\n', '\\n'),
   "client_email": st.secrets["gcp_service_account"]["client_email"],
   # ... etc.
 }
