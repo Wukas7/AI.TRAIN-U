@@ -12,7 +12,7 @@ st.set_page_config(page_title="AI.TRAIN-U", layout="wide")
 
 # Clave de API de Google Gemini (¡REEMPLAZA ESTO!)
 # Es más seguro usar st.secrets para desplegar, pero para uso local está bien así.
-GEMINI_API_KEY = st.secrets["AIzaSyAwLP-kMUy824nRxc3JiKseNXriJwV5dag"]
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GEMINI_API_KEY)
 
 # --- AÑADE ESTAS LÍNEAS PARA DEPURACIÓN ---
