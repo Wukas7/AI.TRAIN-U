@@ -36,13 +36,6 @@ google_creds_dict = {
   # ... etc.
 }
 
-# --- AÑADE ESTAS LÍNEAS PARA DEPURAR ---
-st.write("--- MODO DEPURACIÓN ---")
-st.write("El diccionario que se está intentando usar es:")
-st.write(st.secrets["gcp_service_account"])
-st.stop() # ESTO DETIENE LA APP AQUÍ PARA QUE PODAMOS VER EL MENSAJE
-# ------------------------------------
-
 creds = Credentials.from_service_account_info(google_creds_dict, scopes=scopes)
 
 
