@@ -15,12 +15,6 @@ st.set_page_config(page_title="AI.TRAIN-U", layout="wide")
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GEMINI_API_KEY)
 
-# --- AÑADE ESTAS LÍNEAS PARA DEPURACIÓN ---
-st.write(f"Valor de GEMINI_API_KEY (primeros 5 caracteres): {GEMINI_API_KEY[:]}...")
-if not GEMINI_API_KEY:
-    st.write("La clave API de Gemini está vacía.")
-# ----------------------------------------
-
 # Autenticación con Google Sheets
 # Define los permisos (scopes) que necesita la aplicación
 scopes = ["https://www.googleapis.com/auth/spreadsheets",
