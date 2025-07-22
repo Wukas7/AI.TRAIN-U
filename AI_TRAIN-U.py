@@ -44,6 +44,11 @@ if authentication_status:
     authenticator.logout('Logout', 'main')
     st.write(f'Bienvenido *{name}* (Usuario: {username})')
 
+elif authentication_status == False:
+    st.error('Usuario/contraseña es incorrecta')
+elif authentication_status == None:
+    st.warning('Por favor, introduce tu usuario y contraseña para continuar')
+
 
 # --- CONFIGURACIÓN INICIAL ---
 
@@ -87,11 +92,6 @@ client = gspread.authorize(creds)
 spreadsheet = client.open("AI.TRAIN-U")
 sheet_perfil = spreadsheet.worksheet("Perfil")
 sheet_registro = spreadsheet.worksheet("Registro_Diario")
-
-elif authentication_status == False:
-    st.error('Usuario/contraseña es incorrecta')
-elif authentication_status == None:
-    st.warning('Por favor, introduce tu usuario y contraseña para continuar')
 
 
 # --- FUNCIONES AUXILIARES ---
