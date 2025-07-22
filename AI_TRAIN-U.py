@@ -69,9 +69,7 @@ if authenticator.login(location='main'):
     st.write(f"Usuario intentado: {authenticator.username}")
     # ------------------------------------
 
-if authenticator.authentication_status:
 
-        
     # 4.1. Acceder a los datos del usuario y mostrar bienvenida/logout
     name = authenticator.credentials['usernames'][authenticator.username]['name']
     username = authenticator.username
