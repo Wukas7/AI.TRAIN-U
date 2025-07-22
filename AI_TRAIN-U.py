@@ -4,6 +4,46 @@ import gspread
 from google.oauth2.service_account import Credentials
 import google.generativeai as genai
 from datetime import datetime
+import streamlit_authenticator as stauth
+
+# --- CONFIGURACIÓN DEL LOGIN ---
+# Lee la configuración desde los secrets
+config = {
+    'credentials': {
+        'usernames': {
+            username: {
+                'name': name,
+                'password': password
+            }
+            for username, name, password in zip(
+                st.secrets['credentials']['usernames'],
+                st.secrets['credentials']['names'],
+                st.secrets['credentials']['passwords']
+            )
+        }
+    },
+    'cookie': {'name': 'some_cookie_name', 'key': 'some_secret_key', 'expiry_days': 30},
+    'preauthorized': {'emails': []}
+}
+
+# Crea la instancia del autenticador
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+    config['preauthorized']
+)
+
+# --- PÁGINA DE LOGIN ---
+name, authentication_status, username = authenticator.login('Login', 'main')
+
+# --- LÓGICA DE LA APLICACIÓN ---
+if authentication_status:
+    # Si el login es correcto, muestra el botón de logout y el resto de la app
+    authenticator.logout('Logout', 'main')
+    st.write(f'Bienvenido *{name}* (Usuario: {username})')
+
 
 # --- CONFIGURACIÓN INICIAL ---
 
@@ -47,6 +87,12 @@ client = gspread.authorize(creds)
 spreadsheet = client.open("AI.TRAIN-U")
 sheet_perfil = spreadsheet.worksheet("Perfil")
 sheet_registro = spreadsheet.worksheet("Registro_Diario")
+
+elif authentication_status == False:
+    st.error('Usuario/contraseña es incorrecta')
+elif authentication_status == None:
+    st.warning('Por favor, introduce tu usuario y contraseña para continuar')
+
 
 # --- FUNCIONES AUXILIARES ---
 
