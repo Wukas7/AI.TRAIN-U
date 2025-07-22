@@ -70,24 +70,3 @@ authenticator = stauth.Authenticate(
     cookie_key,
     cookie_expiry
 )
-    # 3.2. Configuración de Gemini y Google Sheets (SOLO si el login es correcto)
-    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=GEMINI_API_KEY)
-
-    google_creds_dict = st.secrets["gcp_service_account"] # Leemos la sección entera
-    
-    scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_info(google_creds_dict, scopes=scopes)
-    client = gspread.authorize(creds)
-    spreadsheet = client.open("AI.TRAIN-U")
-    sheet_perfil = spreadsheet.worksheet("Perfil")
-    sheet_registro = spreadsheet.worksheet("Registro_Diario")
-
-    # 3.3. Aquí van tus funciones (cargar_perfil, cargar_historial, generar_plan)
-    # ... (Pega aquí tus funciones) ...
-
-    # 3.4. Aquí va tu interfaz de Streamlit (el expander, el formulario, etc.)
-    # ... (Pega aquí tu código de la interfaz) ...
-
-# El código completo de tus funciones y la interfaz iría donde he puesto los comentarios.
-# Si quieres, pego el código entero en la siguiente respuesta para que no haya dudas.
