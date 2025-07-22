@@ -15,7 +15,19 @@ st.set_page_config(page_title="AI.TRAIN-U", layout="wide")
 # Este es el código correcto para leer la estructura que tienes en tus Secrets.
 try:
     config = {
-        'credentials': st.secrets['credentials'],
+        'credentials': {
+            'usernames': {
+                username: {
+                    'name': name,
+                    'password': password
+                }
+                for username, name, password in zip(
+                    st.secrets['credentials']['usernames'],
+                    st.secrets['credentials']['names'],
+                    st.secrets['credentials']['passwords']
+                )
+            }
+        },
         'cookie': st.secrets['cookie']
     }
 
@@ -25,12 +37,10 @@ try:
         config['cookie']['key'],
         config['cookie']['expiry_days']
     )
-
-except Exception as e:
-    st.error(f"Error al leer la configuración de los 'Secrets'. Revisa el formato.")
-    st.error(f"Error detallado: {e}")
-    st.stop() # Detiene la app si la configuración falla.
-
+except KeyError as e:
+    st.error(f"Error: No se encontró una clave en tus 'Secrets'. Asegúrate de que [credentials] y [cookie] están bien definidos.")
+    st.error(f"Clave que falta: {e}")
+    st.stop()
 
 # --- 3. PANEL DE DEPURACIÓN (NUEVO) ---
 # Este expander nos mostrará información interna para encontrar el problema.
