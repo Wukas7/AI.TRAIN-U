@@ -22,8 +22,7 @@ config = {
             )
         }
     },
-    'cookie': {'name': 'some_cookie_name', 'key': 'some_secret_key', 'expiry_days': 30},
-    'preauthorized': {'emails': []}
+    'cookie': {'name': 'ai_train_u_cookie', 'key': 'abcdef123456', 'expiry_days': 30},
 }
 
 # Crea la instancia del autenticador
@@ -32,7 +31,6 @@ authenticator = stauth.Authenticate(
     config['cookie']['name'],
     config['cookie']['key'],
     config['cookie']['expiry_days'],
-    config['preauthorized']
 )
 
 # --- PÁGINA DE LOGIN ---
