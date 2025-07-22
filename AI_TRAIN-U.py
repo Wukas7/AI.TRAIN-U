@@ -31,28 +31,29 @@ google_creds_dict = {
 
 
 # --- 3. CONFIGURACIÓN DEL AUTENTICADOR ---
-config = {
-    'credentials': {
-        'usernames': {
-            username: {
-                'name': name,
-                'password': password
-            }
-            for username, name, password in zip(
-                st.secrets['credentials']['usernames'],
-                st.secrets['credentials']['names'],
-                st.secrets['credentials']['passwords']
-            )
+credentials_data = {
+    'usernames': {
+        username: {
+            'name': name,
+            'password': password
         }
-    },
-    'cookie': {'name': 'ai_train_u_cookie', 'key': 'ai_train_oreo', 'expiry_days': 30},
+        for username, name, password in zip(
+            st.secrets['credentials']['usernames'],
+            st.secrets['credentials']['names'],
+            st.secrets['credentials']['passwords']
+        )
+    }
 }
 
+# Leemos la configuración de la cookie desde los secrets
+cookie_data = st.secrets['cookie']
+
+# Creamos la instancia del autenticador pasándole los datos correctos
 authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days'],
+    credentials_data,
+    cookie_data['name'],
+    cookie_data['key'],
+    cookie_data['expiry_days']
 )
 
 # --- 4. LÓGICA DE LOGIN Y EJECUCIÓN DE LA APP ---
