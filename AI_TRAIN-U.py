@@ -1,6 +1,6 @@
 import yaml
 from yaml.loader import SafeLoader
-with open('C:\Users\lvazquezr\Documents\config.yaml') as file:
+with open(C:\Users\lvazquezr\Documents\config.yaml) as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 
