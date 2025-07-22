@@ -37,7 +37,7 @@ authenticator = stauth.Authenticate(
 authenticator.login(location='main')
 
 # --- LÓGICA DE LA APLICACIÓN ---
-if authentication_status:
+if authenticator.authentication_status:
     # Si el login es correcto, muestra el botón de logout y el resto de la app
     # Si el login es correcto, accedemos a los datos desde el objeto
     name = authenticator.credentials['usernames'][authenticator.username]['name']
@@ -49,9 +49,9 @@ if authentication_status:
     st.write(f"Estás conectado como: **{username}**")
     st.divider()
 
-elif authentication_status == False:
+elif authenticator.authentication_status == False:
     st.error('Usuario/contraseña es incorrecta')
-elif authentication_status == None:
+elif authenticator.authentication_status == None:
     st.warning('Por favor, introduce tu usuario y contraseña para continuar')
 
 
