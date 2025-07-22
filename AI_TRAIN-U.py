@@ -65,7 +65,13 @@ authenticator = stauth.Authenticate(
 # --- 4. LÓGICA DE LOGIN Y EJECUCIÓN DE LA APP ---
 if authenticator.login(location='main'):
     # ---- DENTRO DE ESTE IF VA TODO LO QUE EL USUARIO LOGUEADO PUEDE HACER ----
-    
+    st.write(f"Estado de la autenticación: {authenticator.authentication_status}")
+    st.write(f"Usuario intentado: {authenticator.username}")
+    # ------------------------------------
+
+    if authenticator.authentication_status:
+
+        
     # 4.1. Acceder a los datos del usuario y mostrar bienvenida/logout
     name = authenticator.credentials['usernames'][authenticator.username]['name']
     username = authenticator.username
