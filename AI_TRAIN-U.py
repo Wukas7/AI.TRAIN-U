@@ -47,19 +47,29 @@ except KeyError as e:
 
 
 # --- 3. LÓGICA DE LOGIN Y EJECUCIÓN DE LA APP (MÉTODO MODERNO) ---
-if authenticator.login(location='main'):
-    # ---- DENTRO DE ESTE IF VA TODO LO QUE EL USUARIO LOGUEADO PUEDE HACER ----
-    
-    # 3.1. Acceder a los datos del usuario y mostrar bienvenida/logout
-    name = authenticator.credentials['usernames'][authenticator.username]['name']
-    username = authenticator.username
-    
-    authenticator.logout(location='main')
-    
-    st.title(f"Planificador de {name}")
-    st.write(f"Conectado como: **{username}**")
-    st.divider()
+# Definimos las credenciales directamente en el código, sin leer de Secrets.
+test_credentials = {
+    "usernames": {
+        "testuser": {
+            "name": "Usuario de Prueba",
+            # Pega aquí el hash FRESCO que acabas de generar para "1234"
+            "password": "$2b$12$ivGKO5qn95vvhtZUARyxs.35SW.C1e/GwPykMcBa1eQxC.DbzVgbi" 
+        }
+    }
+}
 
+# Definimos la cookie directamente
+cookie_name = "test_cookie"
+cookie_key = "este_es_un_secreto_de_prueba"
+cookie_expiry = 30
+
+# Creamos la instancia del autenticador con los datos hardcodeados
+authenticator = stauth.Authenticate(
+    test_credentials,
+    cookie_name,
+    cookie_key,
+    cookie_expiry
+)
     # 3.2. Configuración de Gemini y Google Sheets (SOLO si el login es correcto)
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=GEMINI_API_KEY)
