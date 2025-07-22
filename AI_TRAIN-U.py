@@ -11,58 +11,44 @@ import streamlit_authenticator as stauth
 st.set_page_config(page_title="AI.TRAIN-U", layout="wide")
 
 
-# --- 2. CONFIGURACIÓN DE CLAVES Y SERVICIOS (leídos desde Secrets) ---
-# Se configuran aquí arriba para que estén disponibles para toda la app.
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-genai.configure(api_key=GEMINI_API_KEY)
-
-google_creds_dict = {
-    "type": st.secrets["gcp_service_account"]["type"],
-    "project_id": st.secrets["gcp_service_account"]["project_id"],
-    "private_key_id": st.secrets["gcp_service_account"]["private_key_id"],
-    "private_key": st.secrets["gcp_service_account"]["private_key"],
-    "client_email": st.secrets["gcp_service_account"]["client_email"],
-    "client_id": st.secrets["gcp_service_account"]["client_id"],
-    "auth_uri": st.secrets["gcp_service_account"]["auth_uri"],
-    "token_uri": st.secrets["gcp_service_account"]["token_uri"],
-    "auth_provider_x509_cert_url": st.secrets["gcp_service_account"]["auth_provider_x509_cert_url"],
-    "client_x509_cert_url": st.secrets["gcp_service_account"]["client_x509_cert_url"]
-}
-
-
-# --- 3. CONFIGURACIÓN DEL AUTENTICADOR ---
-credentials_data = {
-    'usernames': {
-        username: {
-            'name': name,
-            'password': password
-        }
-        for username, name, password in zip(
-            st.secrets['credentials']['usernames'],
-            st.secrets['credentials']['names'],
-            st.secrets['credentials']['passwords']
-        )
+# --- 2. CONFIGURACIÓN DEL AUTENTICADOR (LEYENDO DESDE SECRETS) ---
+# Este es el código correcto para leer la estructura que tienes en tus Secrets.
+try:
+    config = {
+        'credentials': st.secrets['credentials'],
+        'cookie': st.secrets['cookie']
     }
-}
 
-# Leemos la configuración de la cookie desde los secrets
-cookie_data = st.secrets['cookie']
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days']
+    )
 
-# Creamos la instancia del autenticador pasándole los datos correctos
-authenticator = stauth.Authenticate(
-    credentials_data,
-    cookie_data['name'],
-    cookie_data['key'],
-    cookie_data['expiry_days']
-)
+except Exception as e:
+    st.error(f"Error al leer la configuración de los 'Secrets'. Revisa el formato.")
+    st.error(f"Error detallado: {e}")
+    st.stop() # Detiene la app si la configuración falla.
+
+
+# --- 3. PANEL DE DEPURACIÓN (NUEVO) ---
+# Este expander nos mostrará información interna para encontrar el problema.
+with st.expander("🐞 MODO DEPURACIÓN / DEBUG MODE"):
+    st.subheader("Configuración Leída desde Secrets")
+    st.write("Verifica que esta estructura es correcta y que los hashes están completos.")
+    st.json(config) # st.json muestra los diccionarios de forma bonita.
+
+    st.subheader("Estado Actual de la Autenticación")
+    st.write(f"**Status:** `{authenticator.authentication_status}`")
+    st.write(f"**Username:** `{authenticator.username}`")
+    st.write(f"**Name:** `{authenticator.credentials['usernames'].get(authenticator.username, {}).get('name', 'No disponible') if authenticator.username else 'No disponible'}`")
+
 
 # --- 4. LÓGICA DE LOGIN Y EJECUCIÓN DE LA APP ---
-# La función login ahora gestiona los estados internamente.
-# El código que viene después solo se ejecuta si el login es exitoso.
 if authenticator.login(location='main'):
     # ---- DENTRO DE ESTE IF VA TODO LO QUE EL USUARIO LOGUEADO PUEDE HACER ----
     
-    # 4.1. Acceder a los datos del usuario y mostrar bienvenida/logout
     name = authenticator.credentials['usernames'][authenticator.username]['name']
     username = authenticator.username
     
@@ -71,7 +57,7 @@ if authenticator.login(location='main'):
     st.title(f"Planificador de {name}")
     st.write(f"Conectado como: **{username}**")
     st.divider()
-
+    
     # 4.2. Conexión a Google Sheets (ahora que sabemos que el usuario es válido)
     scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_info(google_creds_dict, scopes=scopes)
