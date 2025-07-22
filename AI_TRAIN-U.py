@@ -34,12 +34,12 @@ authenticator = stauth.Authenticate(
 )
 
 # --- PÁGINA DE LOGIN ---
-name, authentication_status, username = authenticator.login('Login', 'main')
+name, authentication_status, username = authenticator.login(location='main')
 
 # --- LÓGICA DE LA APLICACIÓN ---
 if authentication_status:
     # Si el login es correcto, muestra el botón de logout y el resto de la app
-    authenticator.logout('Logout', 'main')
+    authenticator.logout(location='main')
     st.write(f'Bienvenido *{name}* (Usuario: {username})')
 
 elif authentication_status == False:
