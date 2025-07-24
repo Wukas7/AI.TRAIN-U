@@ -135,7 +135,7 @@ def main():
 
     if not st.session_state['logged_in']:
         # PANTALLA DE LOGIN
-        st.image("https://www.behance.net/gallery/72735831/GYM-Workout/modules/423539339")
+        st.image(https://www.behance.net/gallery/72735831/GYM-Workout/modules/423539339)
         st.sidebar.header("Login")
         username_input = st.sidebar.text_input("Usuario")
         password_input = st.sidebar.text_input("Contraseña", type='password')
