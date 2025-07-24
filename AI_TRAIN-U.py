@@ -55,7 +55,23 @@ def guardar_registro(client, username, nueva_fila_datos):
     
 # ... (tu función generar_plan no necesita cambios) ...
 def generar_plan(perfil, historial_str, datos_hoy):
-    # ... tu código de generar_plan ...
+    """Llama a la API de Gemini para generar el plan."""
+    # TODO ESTE BLOQUE DEBE ESTAR INDENTADO
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = f"""
+    Eres un entrenador personal y nutricionista experto en IA. Tu objetivo es crear un plan de entrenamiento y dieta para mañana basado en mi perfil, mi historial y mis datos de hoy.
+
+    **MI PERFIL:**
+    - Objetivo: {perfil.get('Objetivo', 'No especificado')}
+    - Edad: {perfil.get('Edad', 'No especificado')}
+    # ... (el resto de tu prompt) ...
+    """
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        st.error(f"Error al contactar con la IA: {e}")
+        return None
 
 
 # --- 3. CÓDIGO PRINCIPAL DE LA APP ---
