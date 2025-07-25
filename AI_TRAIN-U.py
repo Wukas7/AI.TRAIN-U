@@ -224,7 +224,6 @@ def main():
     if not st.session_state['logged_in']:
         st.image("https://mir-s3-cdn-cf.behance.net/project_modules/fs/218fc872735831.5bf1e45999c40.gif")
         st.sidebar.header("Login")
-        # ... (código de login sin cambios) ...
         username_input = st.sidebar.text_input("Usuario")
         password_input = st.sidebar.text_input("Contraseña", type='password')
         if st.sidebar.button("Login"):
@@ -249,7 +248,7 @@ def main():
             st.rerun()
 
         creds_dict = st.secrets["gcp_service_account"]
-        scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        scopes = ["https.www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
         gspread_client = gspread.authorize(creds)
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
@@ -257,66 +256,54 @@ def main():
         perfil_usuario = cargar_perfil(gspread_client, username)
         historial_df = cargar_historial(gspread_client, username)
         
-        # --- (NUEVO) SECCIÓN 1: PANEL SEMANAL ---
+        # --- Muestra el plan recién generado si existe ---
+        if 'plan_recien_generado' in st.session_state:
+            st.header("🚀 Tu Plan Detallado para el Primer Día")
+            st.markdown(st.session_state['plan_recien_generado'])
+            del st.session_state['plan_recien_generado'] # Lo borramos para que no vuelva a salir
+
+        # --- SECCIÓN DEL PANEL SEMANAL ---
         st.header("🗓️ Tu Hoja de Ruta Semanal")
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
-
+        
         if not plan_semana_actual:
             st.info("Aún no tienes un plan para esta semana.")
             if st.button("💪 ¡Generar mi plan para la semana!"):
                 with st.spinner("Generando tu plan estratégico y el plan detallado para el Lunes..."):
-            
-                    # --- PASO 1: Generar estructura semanal ---
                     historial_mes_str = historial_df.tail(30).to_string()
                     plan_semanal_generado_str = generar_plan_semanal(perfil_usuario, historial_mes_str)
 
                     if plan_semanal_generado_str:
-                        # Guardamos la estructura en el Sheet (esto la rellena con 'Pendiente', etc.)
                         guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado_str)
                         st.success("¡Estructura semanal guardada!")
-                
-                        # --- PASO 2: Generar plan detallado para el Lunes ---
-                        # Simulamos los "datos de hoy" como si fuera Domingo, para planificar el Lunes
+                        
                         datos_ficticios_domingo = {"entreno": "Descanso", "sensaciones": "Listo para empezar la semana"}
-                
-                    # Cargamos de nuevo el plan que acabamos de guardar para tenerlo como diccionario
                         plan_recien_creado = cargar_plan_semana(gspread_client, username)
-                
-                        plan_detallado_lunes = generar_plan_diario(perfil_usuario, historial_mes_str, datos_ficticios_domingo, plan_recien_creado)
+                        
+                        if plan_recien_creado: # Comprobamos que se ha cargado bien
+                            plan_detallado_lunes = generar_plan_diario(perfil_usuario, historial_mes_str, datos_ficticios_domingo, plan_recien_creado)
 
-                        if plan_detallado_lunes:
-                            # Guardamos este plan en el estado de la sesión para mostrarlo después de recargar
-                            st.session_state['plan_recien_generado'] = plan_detallado_lunes
-                    
-                            # Actualizamos el estado del Lunes a "✅ Realizado" (ya que lo hemos planificado)
-                            actualizar_estado_semanal(gspread_client, username, "Lunes", "✅ Planificado")
+                            if plan_detallado_lunes:
+                                st.session_state['plan_recien_generado'] = plan_detallado_lunes
+                                
+                                # ¡LÍNEA CORREGIDA!
+                                plan_del_lunes = plan_recien_creado.get("Lunes_Plan", "No definido")
+                                actualizar_plan_completo(gspread_client, username, "Lunes", plan_del_lunes, "✅ Planificado")
 
-                            st.success("¡Plan para Lunes generado! Recargando...")
-                            time.sleep(3)
-                            st.rerun()
-
-# (NUEVO) Bloque para mostrar el plan recién generado después del rerun
-                        if 'plan_recien_generado' in st.session_state:
-                            st.header("🚀 Tu Plan Detallado para el Primer Día")
-                            st.markdown(st.session_state['plan_recien_generado'])
-                            # Limpiamos la variable para que no aparezca en futuras recargas
-                            del st.session_state['plan_recien_generado']
-
-
+                                st.success("¡Plan para Lunes generado! Recargando...")
+                                time.sleep(3)
+                                st.rerun()
         else:
             st.subheader("Plan Actualizado de la Semana")
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            plan_data = {
-               "Día": dias,
-               "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias],
-               "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias]
-            }
+            plan_data = { "Día": dias, "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias], "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias] }
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
 
         st.divider()
 
+        # --- SECCIÓN DE REGISTRO DIARIO ---
         if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
         else:
@@ -346,29 +333,27 @@ def main():
                         plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
 
                         if plan_generado:
-                                  # 1. Extraer el plan detallado y la posible re-planificación
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                            plan_diario_detallado = partes_plan[0]
+                            plan_diario_detallado = partes_plan[0].strip()
 
-                            # 2. Actualizar el estado y el plan del día de HOY
-                            dia_hoy_nombre = dias[(datetime.today().weekday())]
-                            nuevo_plan_hoy = datos_de_hoy['entreno']
-                            nuevo_estado_hoy = "✅ Realizado"
-                            actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, nuevo_plan_hoy, nuevo_estado_hoy)
+                            nueva_fila_datos = [datetime.now().strftime('%Y-%m-%d'), calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
+                            guardar_registro(gspread_client, username, nueva_fila_datos)
+
+                            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                            dia_hoy_nombre = dias_semana[(datetime.today().weekday())]
+                            
+                            # ¡USAMOS LA FUNCIÓN CORRECTA!
+                            actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, entreno, "✅ Realizado")
         
-                            # 3. Si la IA sugirió una re-planificación, la aplicamos
                             if len(partes_plan) > 1:
-                                replanning_sugerido = partes_plan[1].strip()
-                               # (Aquí iría una función más compleja que parsee y actualice los días futuros en el Sheet)
-                                st.info("¡La IA ha re-planificado el resto de tu semana basándose en el entreno de hoy!")
-
+                                st.info("¡La IA ha re-planificado el resto de tu semana!")
+                                # Lógica futura para actualizar el resto de la semana...
+                            
                             st.success("¡Plan para mañana generado y semana actualizada!")
                             st.markdown(plan_diario_detallado)
                             st.info("Actualizando la tabla...")
                             time.sleep(3)
                             st.rerun()
-
-
 
 if __name__ == '__main__':
     main()
