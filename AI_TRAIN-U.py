@@ -341,26 +341,26 @@ def main():
 
                         if plan_generado:
                                   # 1. Extraer el plan detallado y la posible re-planificación
-                        partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                        plan_diario_detallado = partes_plan[0]
+                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                            plan_diario_detallado = partes_plan[0]
 
-                        # 2. Actualizar el estado y el plan del día de HOY
-                        dia_hoy_nombre = dias[(datetime.today().weekday())]
-                        nuevo_plan_hoy = datos_de_hoy['entreno']
-                        nuevo_estado_hoy = "✅ Realizado"
-                        actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, nuevo_plan_hoy, nuevo_estado_hoy)
+                            # 2. Actualizar el estado y el plan del día de HOY
+                            dia_hoy_nombre = dias[(datetime.today().weekday())]
+                            nuevo_plan_hoy = datos_de_hoy['entreno']
+                            nuevo_estado_hoy = "✅ Realizado"
+                            actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, nuevo_plan_hoy, nuevo_estado_hoy)
         
-                        # 3. Si la IA sugirió una re-planificación, la aplicamos
-                        if len(partes_plan) > 1:
-                            replanning_sugerido = partes_plan[1].strip()
-                           # (Aquí iría una función más compleja que parsee y actualice los días futuros en el Sheet)
-                            st.info("¡La IA ha re-planificado el resto de tu semana basándose en el entreno de hoy!")
+                            # 3. Si la IA sugirió una re-planificación, la aplicamos
+                            if len(partes_plan) > 1:
+                                replanning_sugerido = partes_plan[1].strip()
+                               # (Aquí iría una función más compleja que parsee y actualice los días futuros en el Sheet)
+                                st.info("¡La IA ha re-planificado el resto de tu semana basándose en el entreno de hoy!")
 
-                    st.success("¡Plan para mañana generado y semana actualizada!")
-                    st.markdown(plan_diario_detallado)
-                    st.info("Actualizando la tabla...")
-                    time.sleep(3)
-                st.rerun()
+                            st.success("¡Plan para mañana generado y semana actualizada!")
+                            st.markdown(plan_diario_detallado)
+                            st.info("Actualizando la tabla...")
+                            time.sleep(3)
+                            st.rerun()
 
 
 
