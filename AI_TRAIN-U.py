@@ -250,7 +250,8 @@ def main():
             st.info("Aún no tienes un plan para esta semana.")
             if st.button("💪 ¡Generar mi plan para la semana!"):
                 with st.spinner("Generando tu plan estratégico..."):
-                    plan_semanal_generado = generar_plan_semanal(perfil_usuario)
+                    historial_mes_str = historial_df.tail(30).to_string()
+                    plan_semanal_generado = generar_plan_semanal(perfil_usuario, historial_mes_str)
                     if plan_semanal_generado:
                         guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado)
                         st.success("¡Plan semanal generado! Recargando...")
