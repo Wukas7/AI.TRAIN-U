@@ -289,19 +289,19 @@ def main():
         del st.session_state['plan_recien_generado']
 
 
-        else:
-            st.subheader("Plan Actualizado de la Semana")
-            dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            plan_data = {
-                "Día": dias,
-                "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias],
-                "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias]
-            }
-            st.table(pd.DataFrame(plan_data).set_index("Día"))
-            with st.expander("Ver Plan Original de la Semana"):
-                st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
+            else:
+                st.subheader("Plan Actualizado de la Semana")
+                dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                plan_data = {
+                    "Día": dias,
+                    "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias],
+                    "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias]
+                }
+                st.table(pd.DataFrame(plan_data).set_index("Día"))
+                with st.expander("Ver Plan Original de la Semana"):
+                    st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
 
-        st.divider()
+            st.divider()
 
         if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
