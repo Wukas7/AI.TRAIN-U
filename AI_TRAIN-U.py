@@ -6,6 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import google.generativeai as genai
 from datetime import datetime, timedelta
+import time
 
 # --- 1. FUNCIONES DE SEGURIDAD Y BASE DE DATOS DE LOGIN ---
 def make_hashes(password):
