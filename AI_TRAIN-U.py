@@ -297,7 +297,7 @@ def main():
                         del st.session_state['plan_recien_generado']
 
 
-            else:
+          else:
                 st.subheader("Plan Actualizado de la Semana")
                 dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                 plan_data = {
