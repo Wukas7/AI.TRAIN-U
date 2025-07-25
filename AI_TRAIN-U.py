@@ -69,7 +69,8 @@ def guardar_registro(client, username, nueva_fila_datos):
     sheet_registro.append_row(fila_completa)
     
 def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
-    """(NUEVA) Guarda un plan semanal recién creado en el Sheet."""
+def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
+    """(CORREGIDO) Guarda un plan semanal recién creado en el Sheet."""
     sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
     today = datetime.today()
     lunes_actual = (today - timedelta(days=today.weekday())).strftime('%d/%m/%Y')
@@ -77,15 +78,22 @@ def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
     
     planes_diarios = plan_generado_str.split('\n')
     nueva_fila = [username, lunes_actual]
+    
+    # Este bucle ahora es más inteligente y tolerante a errores de formato de la IA
     for dia in dias:
-        plan_dia = next((s for s in planes_diarios if s.strip().startswith(dia)), f"{dia}: Descanso")
-        # Aseguramos que el split funciona aunque no haya ":"
-        plan_desc = plan_dia.split(': ', 1)[1] if ': ' in plan_dia else "Descanso"
-        nueva_fila.extend([plan_desc, "Pendiente"])
-    nueva_fila.append(plan_generado_str) # Plan_Original_Completo
+        plan_encontrado_para_dia = "Descanso" # Valor por defecto
+        for linea in planes_diarios:
+            linea_limpia = linea.strip()
+            if linea_limpia.startswith(dia):
+                partes = linea_limpia.split(':', 1)
+                if len(partes) > 1:
+                    plan_encontrado_para_dia = partes[1].strip()
+                break # Dejamos de buscar una vez que encontramos el día
+        nueva_fila.extend([plan_encontrado_para_dia, "Pendiente"])
     
+    nueva_fila.append(plan_generado_str)
     sheet.append_row(nueva_fila)
-    
+        
 def actualizar_estado_semanal(client, username, dia, estado):
     """(NUEVA) Actualiza el estado de un día en el plan semanal."""
     try:
@@ -268,7 +276,10 @@ def main():
                             
                             st.success("¡Plan para mañana generado y semana actualizada!")
                             st.markdown(plan_generado)
-                            st.info("La tabla semanal se actualizará la próxima vez que recargues la página.")
+                            st.info("Actualizando la tabla del plan semanal en 3 segundos...")
+                            time.sleep(3) # Damos tiempo al usuario para leer el mensaje
+                            st.rerun() # Forzamos la recarga de la página
+
 
 if __name__ == '__main__':
     main()
