@@ -69,29 +69,42 @@ def guardar_registro(client, username, nueva_fila_datos):
     sheet_registro.append_row(fila_completa)
     
 def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
-    """(CORREGIDO) Guarda un plan semanal recién creado en el Sheet."""
-    sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
-    today = datetime.today()
-    lunes_actual = (today - timedelta(days=today.weekday())).strftime('%d/%m/%Y')
-    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    
-    planes_diarios = plan_generado_str.split('\n')
-    nueva_fila = [username, lunes_actual]
-    
-    # Este bucle ahora es más inteligente y tolerante a errores de formato de la IA
-    for dia in dias:
-        plan_encontrado_para_dia = "Descanso" # Valor por defecto
-        for linea in planes_diarios:
-            linea_limpia = linea.strip()
-            if linea_limpia.startswith(dia):
-                partes = linea_limpia.split(':', 1)
-                if len(partes) > 1:
-                    plan_encontrado_para_dia = partes[1].strip()
-                break # Dejamos de buscar una vez que encontramos el día
-        nueva_fila.extend([plan_encontrado_para_dia, "Pendiente"])
-    
-    nueva_fila.append(plan_generado_str)
-    sheet.append_row(nueva_fila)
+    """Guarda un plan semanal recién creado, rellenando correctamente todas las columnas."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
+        today = datetime.today()
+        lunes_actual = (today - timedelta(days=today.weekday())).strftime('%d/%m/%Y')
+        dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        
+        # Preparamos la nueva fila para el Google Sheet
+        nueva_fila = [username, lunes_actual]
+        
+        # Limpiamos la respuesta de la IA por si añade texto extra
+        planes_diarios = [linea.strip() for linea in plan_generado_str.strip().split('\n')]
+        
+        # Este bucle ahora es más inteligente y rellena las columnas de cada día
+        for dia in dias:
+            plan_encontrado_para_dia = "Descanso" # Valor por defecto si no encuentra el día
+            for linea in planes_diarios:
+                if linea.startswith(dia):
+                    # Dividimos la línea por el primer ':' que encuentre
+                    partes = linea.split(':', 1)
+                    if len(partes) > 1:
+                        # Nos quedamos con la descripción del plan y quitamos espacios extra
+                        plan_encontrado_para_dia = partes[1].strip()
+                    break # Una vez encontramos el día, pasamos al siguiente
+            
+            # Añadimos el Plan del día y su estado inicial ("Pendiente")
+            nueva_fila.extend([plan_encontrado_para_dia, "Pendiente"])
+            
+        # Al final, añadimos el texto original completo y legible
+        nueva_fila.append(plan_generado_str.strip())
+        
+        sheet.append_row(nueva_fila)
+        st.success("Plan semanal guardado correctamente en la base de datos.")
+
+    except Exception as e:
+        st.error(f"Ocurrió un error crítico al guardar el nuevo plan semanal: {e}")
         
 def actualizar_estado_semanal(client, username, dia, estado):
     """(NUEVA) Actualiza el estado de un día en el plan semanal."""
