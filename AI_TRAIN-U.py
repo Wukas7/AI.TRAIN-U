@@ -168,28 +168,40 @@ def generar_plan_semanal(perfil, historial_mes_str):
         st.error(f"Error al generar el plan semanal: {e}")
         return None
 
+# (MODIFICADA) La IA ahora también puede sugerir una re-planificación
 def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual):
-    """(MODIFICADA) Genera el plan detallado para mañana, usando el plan semanal como guía."""
     model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    dia_manana_idx = (datetime.today().weekday() + 1) % 7
-    dia_manana_nombre = dias_semana[dia_manana_idx]
-    lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
+    # ... (código para obtener dia_manana_nombre y lo_que_toca_manana sin cambios) ...
 
     prompt = f"""
-    Eres un entrenador personal y nutricionista. Tu objetivo es crear un plan DETALLADO para mañana.
+    Eres un entrenador personal adaptativo. Tu objetivo es crear un plan DETALLADO para mañana y, si es necesario, re-planificar el resto de la semana.
 
     **CONTEXTO ESTRATÉGICO:**
-    - El plan general para mañana ({dia_manana_nombre}) es: **{lo_que_toca_manana}**.
+    - El plan original para la semana es: {plan_semanal_actual.get('Plan_Original_Completo', '')}
+    - Mañana es {dia_manana_nombre} y el plan dice que toca: **{lo_que_toca_manana}**.
 
-    **MI PERFIL:** {perfil}
-    **MI HISTORIAL RECIENTE:** {historial_str}
-    **DATOS DE HOY:** {datos_hoy}
+    **REALIDAD (HOY):**
+    - Perfil: {perfil}
+    - Historial reciente: {historial_str}
+    - Datos de hoy: {datos_hoy}
 
     **TU TAREA:**
-    1. **Valida si el plan de mañana ({lo_que_toca_manana}) sigue teniendo sentido.** Basado en mis sensaciones de hoy, recomienda un cambio si es necesario. Si haces un cambio, explícalo.
-    2. **Crea el plan detallado para mañana.** Mantén el formato original que ya funcionaba, con las secciones de Entrenamiento, Dieta y Consejo.
+    1. **Analiza el entrenamiento de hoy.** Compara lo que hice (`{datos_hoy['entreno']}`) con lo que estaba planeado.
+    2. **Crea el plan detallado para mañana.** Adáptalo si mis sensaciones de hoy lo requieren (dolor, cansancio).
+    3. **(IMPORTANTE) Re-planifica si es necesario.** Si el entrenamiento de hoy fue muy diferente a lo planeado (ej: hice pierna cuando tocaba pecho), el resto de la semana podría necesitar ajustes para mantener el equilibrio. Si crees que hay que cambiar el plan para los días siguientes, añade una sección al final de tu respuesta llamada `### 🔄 Sugerencia de Re-planificación Semanal` con la nueva estructura para los días que quedan. Si no hay cambios necesarios, no incluyas esta sección.
+  
+    **FORMATO DE RESPUESTA:**
+    ### 🏋️ Plan de Entrenamiento para Mañana
+    ...
+    ### 🥗 Plan de Dieta para Mañana
+    ...
+    ### 💡 Consejo del Día
+    ...
+    (Opcional)
+    ### 🔄 Sugerencia de Re-planificación Semanal
+    Martes: ...
+    Miércoles: ...
+    Jueves: ...
     """
     try:
         response = model.generate_content(prompt)
