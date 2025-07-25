@@ -167,7 +167,13 @@ def generar_plan_semanal(perfil, historial_mes_str):
 # (MODIFICADA) La IA ahora también puede sugerir una re-planificación
 def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual):
     model = genai.GenerativeModel('gemini-1.5-flash')
-    # ... (código para obtener dia_manana_nombre y lo_que_toca_manana sin cambios) ...
+    
+    # --- (NUEVO) AÑADIMOS LAS LÍNEAS QUE FALTABAN ---
+    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    dia_manana_idx = (datetime.today().weekday() + 1) % 7
+    dia_manana_nombre = dias_semana[dia_manana_idx]
+    lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
+    # --------------------------------------------------
 
     prompt = f"""
     Eres un entrenador personal adaptativo. Tu objetivo es crear un plan DETALLADO para mañana y, si es necesario, re-planificar el resto de la semana.
