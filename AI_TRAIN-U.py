@@ -76,26 +76,28 @@ def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
         lunes_actual = (today - timedelta(days=today.weekday())).strftime('%d/%m/%Y')
         dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
         
-        # Preparamos la nueva fila para el Google Sheet
+        # Preparamos la nueva fila para el Google Sheet. Columnas: UserID, Semana_Del
         nueva_fila = [username, lunes_actual]
         
-        # Limpiamos la respuesta de la IA por si añade texto extra
-        planes_diarios = [linea.strip() for linea in plan_generado_str.strip().split('\n')]
+        # Limpiamos la respuesta de la IA por si añade espacios o líneas en blanco.
+        planes_diarios_limpios = [linea.strip() for linea in plan_generado_str.strip().split('\n')]
         
-        # Este bucle ahora es más inteligente y rellena las columnas de cada día
+        # Creamos un diccionario para acceder fácilmente al plan de cada día
+        # ej: {'Lunes': 'Empuje...', 'Martes': 'Tirón...'}
+        planes_por_dia = {}
+        for linea in planes_diarios_limpios:
+            if ':' in linea:
+                partes = linea.split(':', 1)
+                dia_semana = partes[0].strip()
+                plan_desc = partes[1].strip()
+                if dia_semana in dias:
+                    planes_por_dia[dia_semana] = plan_desc
+        
+        # Rellenamos las columnas del Sheet con los datos del diccionario
         for dia in dias:
-            plan_encontrado_para_dia = "Descanso" # Valor por defecto si no encuentra el día
-            for linea in planes_diarios:
-                if linea.startswith(dia):
-                    # Dividimos la línea por el primer ':' que encuentre
-                    partes = linea.split(':', 1)
-                    if len(partes) > 1:
-                        # Nos quedamos con la descripción del plan y quitamos espacios extra
-                        plan_encontrado_para_dia = partes[1].strip()
-                    break # Una vez encontramos el día, pasamos al siguiente
-            
+            plan_del_dia = planes_por_dia.get(dia, "Descanso") # Usamos .get para obtener el plan o 'Descanso' si no lo encuentra
             # Añadimos el Plan del día y su estado inicial ("Pendiente")
-            nueva_fila.extend([plan_encontrado_para_dia, "Pendiente"])
+            nueva_fila.extend([plan_del_dia, "Pendiente"])
             
         # Al final, añadimos el texto original completo y legible
         nueva_fila.append(plan_generado_str.strip())
@@ -103,6 +105,8 @@ def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
         sheet.append_row(nueva_fila)
         st.success("Plan semanal guardado correctamente en la base de datos.")
 
+    except Exception as e:
+        st.error(f"Ocurrió un error crítico al guardar el nuevo plan semanal: {e}")
     except Exception as e:
         st.error(f"Ocurrió un error crítico al guardar el nuevo plan semanal: {e}")
         
@@ -129,13 +133,32 @@ def actualizar_estado_semanal(client, username, dia, estado):
         st.warning(f"No se pudo actualizar el plan semanal: {e}")
 
 # --- Funciones de IA (Con las nuevas modificaciones) ---
-def generar_plan_semanal(perfil):
-    """(NUEVA) Genera la estructura de entrenamiento para 7 días."""
+def generar_plan_semanal(perfil, historial_mes_str):
+    """Genera la estructura de entrenamiento para 7 días con un formato estricto."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
-    Eres un planificador de fitness a largo plazo. Basado en el perfil del usuario, genera una estructura de entrenamiento LÓGICA y EQUILIBRADA para los próximos 7 días.
+    Eres un planificador de fitness. Basado en el perfil del usuario, genera una estructura de entrenamiento para los 7 días de la semana.
+
     Perfil: {perfil}
-    Responde ÚNICAMENTE con la lista de 7 días, un día por línea, con el formato 'Día: Grupo Muscular o Actividad'. Sé conciso.
+    Historial del último mes: {historial_mes_str}
+
+    **TU TAREA:**
+    Genera una estructura de entrenamiento para los 7 días de la semana.
+
+    **FORMATO OBLIGATORIO:**
+    Debes responder con EXACTAMENTE 7 líneas.
+    Cada línea DEBE empezar con el nombre del día de la semana (Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo), seguido de dos puntos y el plan.
+    NO incluyas ninguna otra palabra, saludo o explicación antes o después de las 7 líneas.
+    NO uses la palabra genérica 'Día'. Usa el nombre específico de cada día de la semana.
+
+    **EJEMPLO DE RESPUESTA PERFECTA:**
+    Lunes: Empuje (Pecho, Hombro, Tríceps)
+    Martes: Tirón (Espalda, Bíceps)
+    Miércoles: Pierna (Cuádriceps, Femoral)
+    Jueves: Cardio y Abdominales
+    Viernes: Empuje (Enfoque Hombro)
+    Sábado: Tirón (Enfoque Espalda)
+    Domingo: Descanso total
     """
     try:
         response = model.generate_content(prompt)
