@@ -246,17 +246,49 @@ def main():
         # --- (NUEVO) SECCIÓN 1: PANEL SEMANAL ---
         st.header("🗓️ Tu Hoja de Ruta Semanal")
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
-        
-        if not plan_semana_actual:
-            st.info("Aún no tienes un plan para esta semana.")
-            if st.button("💪 ¡Generar mi plan para la semana!"):
-                with st.spinner("Generando tu plan estratégico..."):
-                    historial_mes_str = historial_df.tail(30).to_string()
-                    plan_semanal_generado = generar_plan_semanal(perfil_usuario, historial_mes_str)
-                    if plan_semanal_generado:
-                        guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado)
-                        st.success("¡Plan semanal generado! Recargando...")
+
+    if not plan_semana_actual:
+        st.info("Aún no tienes un plan para esta semana.")
+        if st.button("💪 ¡Generar mi plan para la semana!"):
+            with st.spinner("Generando tu plan estratégico y el plan detallado para el Lunes..."):
+            
+                # --- PASO 1: Generar estructura semanal ---
+                historial_mes_str = historial_df.tail(30).to_string()
+                plan_semanal_generado_str = generar_plan_semanal(perfil_usuario, historial_mes_str)
+
+                if plan_semanal_generado_str:
+                    # Guardamos la estructura en el Sheet (esto la rellena con 'Pendiente', etc.)
+                    guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado_str)
+                    st.success("¡Estructura semanal guardada!")
+                
+                    # --- PASO 2: Generar plan detallado para el Lunes ---
+                    # Simulamos los "datos de hoy" como si fuera Domingo, para planificar el Lunes
+                    datos_ficticios_domingo = {"entreno": "Descanso", "sensaciones": "Listo para empezar la semana"}
+                
+                # Cargamos de nuevo el plan que acabamos de guardar para tenerlo como diccionario
+                    plan_recien_creado = cargar_plan_semana(gspread_client, username)
+                
+                    plan_detallado_lunes = generar_plan_diario(perfil_usuario, historial_mes_str, datos_ficticios_domingo, plan_recien_creado)
+
+                    if plan_detallado_lunes:
+                        # Guardamos este plan en el estado de la sesión para mostrarlo después de recargar
+                        st.session_state['plan_recien_generado'] = plan_detallado_lunes
+                    
+                    # Actualizamos el estado del Lunes a "✅ Realizado" (ya que lo hemos planificado)
+                        actualizar_estado_semanal(gspread_client, username, "Lunes", "✅ Planificado")
+
+                        st.success("¡Plan para Lunes generado! Recargando...")
+                        time.sleep(3)
                         st.rerun()
+
+# (NUEVO) Bloque para mostrar el plan recién generado después del rerun
+    if 'plan_recien_generado' in st.session_state:
+        st.header("🚀 Tu Plan Detallado para el Primer Día")
+        st.markdown(st.session_state['plan_recien_generado'])
+        # Limpiamos la variable para que no aparezca en futuras recargas
+        del st.session_state['plan_recien_generado']
+
+
         else:
             st.subheader("Plan Actualizado de la Semana")
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
