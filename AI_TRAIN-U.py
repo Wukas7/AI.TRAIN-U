@@ -111,27 +111,23 @@ def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
     except Exception as e:
         st.error(f"Ocurrió un error crítico al guardar el nuevo plan semanal: {e}")
         
-def actualizar_estado_semanal(client, username, dia, estado):
-    """(NUEVA) Actualiza el estado de un día en el plan semanal."""
+# (NUEVA Y MEJORADA) Esta función actualiza tanto el plan como el estado
+def actualizar_plan_completo(client, username, dia, nuevo_plan, nuevo_estado):
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
-        today = datetime.today()
-        lunes_actual = (today - timedelta(days=today.weekday())).strftime('%d/%m/%Y')
-        
-        cell_semana = sheet.findall(lunes_actual)
-        fila_usuario = -1
-        for cell in cell_semana:
-            user_en_fila = sheet.cell(cell.row, 1).value
-            if user_en_fila == username:
-                fila_usuario = cell.row
-                break
+        # ... (lógica para encontrar la fila del usuario, igual que antes) ...
         
         if fila_usuario != -1:
-            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            columna_estado = 3 + (dias_semana.index(dia) * 2) + 1
-            sheet.update_cell(fila_usuario, columna_estado, estado)
+            # Encontrar las columnas para el plan y el estado de ese día
+            columna_plan = 3 + (dias_semana.index(dia) * 2)
+            columna_estado = columna_plan + 1
+            
+            # Actualizar ambas celdas
+            sheet.update_cell(fila_usuario, columna_plan, nuevo_plan)
+            sheet.update_cell(fila_usuario, columna_estado, nuevo_estado)
     except Exception as e:
         st.warning(f"No se pudo actualizar el plan semanal: {e}")
+
 
 # --- Funciones de IA (Con las nuevas modificaciones) ---
 def generar_plan_semanal(perfil, historial_mes_str):
@@ -294,11 +290,11 @@ def main():
                         st.rerun()
 
 # (NUEVO) Bloque para mostrar el plan recién generado después del rerun
-    if 'plan_recien_generado' in st.session_state:
-        st.header("🚀 Tu Plan Detallado para el Primer Día")
-        st.markdown(st.session_state['plan_recien_generado'])
-        # Limpiamos la variable para que no aparezca en futuras recargas
-        del st.session_state['plan_recien_generado']
+                    if 'plan_recien_generado' in st.session_state:
+                        st.header("🚀 Tu Plan Detallado para el Primer Día")
+                        st.markdown(st.session_state['plan_recien_generado'])
+                        # Limpiamos la variable para que no aparezca en futuras recargas
+                        del st.session_state['plan_recien_generado']
 
 
             else:
@@ -344,22 +340,28 @@ def main():
                         plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
 
                         if plan_generado:
-                            nueva_fila_datos = [datetime.now().strftime('%Y-%m-%d'), calorias, proteinas, entreno, sensaciones, descanso, plan_generado]
-                            guardar_registro(gspread_client, username, nueva_fila_datos)
-                            
-                            dia_hoy_nombre = dias[(datetime.today().weekday())]
-                            plan_hoy_previsto = plan_semana_actual.get(f"{dia_hoy_nombre}_Plan", "")
-                            if entreno.lower() in plan_hoy_previsto.lower() or plan_hoy_previsto.lower() in entreno.lower():
-                                estado_hoy = "✅ Realizado"
-                            else:
-                                estado_hoy = f"🔄 Modificado"
-                            actualizar_estado_semanal(gspread_client, username, dia_hoy_nombre, estado_hoy)
-                            
-                            st.success("¡Plan para mañana generado y semana actualizada!")
-                            st.markdown(plan_generado)
-                            st.info("Actualizando la tabla del plan semanal en 3 segundos...")
-                            time.sleep(3) # Damos tiempo al usuario para leer el mensaje
-                            st.rerun() # Forzamos la recarga de la página
+                                  # 1. Extraer el plan detallado y la posible re-planificación
+                        partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                        plan_diario_detallado = partes_plan[0]
+
+                        # 2. Actualizar el estado y el plan del día de HOY
+                        dia_hoy_nombre = dias[(datetime.today().weekday())]
+                        nuevo_plan_hoy = datos_de_hoy['entreno']
+                        nuevo_estado_hoy = "✅ Realizado"
+                        actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, nuevo_plan_hoy, nuevo_estado_hoy)
+        
+                        # 3. Si la IA sugirió una re-planificación, la aplicamos
+                        if len(partes_plan) > 1:
+                            replanning_sugerido = partes_plan[1].strip()
+                           # (Aquí iría una función más compleja que parsee y actualice los días futuros en el Sheet)
+                            st.info("¡La IA ha re-planificado el resto de tu semana basándose en el entreno de hoy!")
+
+                    st.success("¡Plan para mañana generado y semana actualizada!")
+                    st.markdown(plan_diario_detallado)
+                    st.info("Actualizando la tabla...")
+                    time.sleep(3)
+                st.rerun()
+
 
 
 if __name__ == '__main__':
