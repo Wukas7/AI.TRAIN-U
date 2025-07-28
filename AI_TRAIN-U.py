@@ -115,19 +115,18 @@ def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
 def actualizar_plan_completo(client, username, dia, nuevo_plan, nuevo_estado):
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
-        # ... (lógica para encontrar la fila del usuario, igual que antes) ...
+        # ... (lógica para encontrar la 'fila_usuario') ...
         
         if fila_usuario != -1:
-            # Encontrar las columnas para el plan y el estado de ese día
-            columna_plan = 3 + (dias_semana.index(dia) * 2)
-            columna_estado = columna_plan + 1
+            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+            columna_plan_idx = 3 + (dias_semana.index(dia) * 2)
             
-            # Actualizar ambas celdas
-            sheet.update_cell(fila_usuario, columna_plan, nuevo_plan)
-            sheet.update_cell(fila_usuario, columna_estado, nuevo_estado)
+            # Actualizamos 2 celdas en una sola petición
+            sheet.update(f'{gspread.utils.rowcol_to_a1(fila_usuario, columna_plan_idx)}:{gspread.utils.rowcol_to_a1(fila_usuario, columna_plan_idx + 1)}', 
+                         [[nuevo_plan, nuevo_estado]])
+            
     except Exception as e:
         st.warning(f"No se pudo actualizar el plan semanal: {e}")
-
 
 # --- Funciones de IA (Con las nuevas modificaciones) ---
 def generar_plan_semanal(perfil, historial_mes_str):
