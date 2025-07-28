@@ -220,7 +220,7 @@ def main():
 
     if not st.session_state['logged_in']:
         # --- PANTALLA DE LOGIN ---
-        st.image("https://mir-s3-cdn-cf.behance.net/project_modules/fs/218fc8735831.5bf1e45999c40.gif")
+        st.image("https://mir-s3-cdn-cf.behance.net/project_modules/fs/218fc872735831.5bf1e45999c40.gif")
         st.sidebar.header("Login")
         username_input = st.sidebar.text_input("Usuario")
         password_input = st.sidebar.text_input("Contraseña", type='password')
