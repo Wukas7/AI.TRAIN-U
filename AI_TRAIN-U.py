@@ -39,7 +39,7 @@ def main():
                 st.rerun()
             else:
                 st.sidebar.error("Usuario o contraseña incorrecta")
-        st.info("Por favor, introduce tus credenciales en la barra lateral para continuar.")
+            st.info("Por favor, introduce tus credenciales en la barra lateral para continuar.")
     
     else:
         # --- APLICACIÓN PRINCIPAL (SI EL LOGIN ES CORRECTO) ---
