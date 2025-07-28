@@ -135,6 +135,7 @@ def main():
                             dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                             dia_hoy_nombre = dias_semana[(datetime.today().weekday())]
                             actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, entreno, "✅ Realizado")
+                            st.session_state['plan_recien_generado'] = plan_diario_detallado
                             if len(partes_plan) > 1:
                                 st.info("¡La IA ha re-planificado el resto de tu semana!")
                             st.success("¡Plan para mañana generado y semana actualizada!")
