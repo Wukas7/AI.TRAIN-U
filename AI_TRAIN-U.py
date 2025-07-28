@@ -105,7 +105,14 @@ def main():
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
-
+        if st.button("👁️ Mostrar mi plan para mañana"):
+            if not historial_df.empty:
+                ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
+                st.markdown("---")
+                st.subheader("📋 Tu Plan Más Reciente")
+                st.markdown(ultimo_plan)
+    else:
+        st.warning("Aún no has generado ningún plan.")
         st.divider()
 
         if "Error" in perfil_usuario:
@@ -116,7 +123,6 @@ def main():
                 st.write(perfil_usuario)
                 st.subheader("Historial de Registros")
                 st.dataframe(historial_df)
-            if st.button("👁️ Mostrar mi plan para mañana"):
                 st.header(f"✍️ Registro del Día")
             with st.form("registro_diario_form"):
                 entreno = st.text_area("¿Qué entrenamiento has hecho hoy?")
