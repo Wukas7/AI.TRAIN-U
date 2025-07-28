@@ -105,9 +105,9 @@ def main():
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
-        if st.button("👁️ Mostrar mi plan para mañana"):
 
         st.divider()
+        if st.button("👁️ Mostrar mi plan para mañana"):
 
         if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
