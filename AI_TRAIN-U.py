@@ -106,9 +106,9 @@ def main():
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
        
-    else:
-        st.warning("Aún no has generado ningún plan.")
-        st.divider()
+        else:
+            st.warning("Aún no has generado ningún plan.")
+            st.divider()
 
         if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
