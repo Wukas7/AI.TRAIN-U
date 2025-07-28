@@ -117,7 +117,7 @@ def main():
                 st.subheader("Historial de Registros")
                 st.dataframe(historial_df)
             if st.button("👁️ Mostrar mi plan para mañana"):
-            st.header(f"✍️ Registro del Día")
+                st.header(f"✍️ Registro del Día")
             with st.form("registro_diario_form"):
                 entreno = st.text_area("¿Qué entrenamiento has hecho hoy?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
