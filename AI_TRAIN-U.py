@@ -105,13 +105,8 @@ def main():
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
-        if st.button("👁️ Mostrar mi plan para mañana"):
-            if not historial_df.empty:
-                ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
-                st.markdown("---")
-                st.subheader("📋 Tu Plan Más Reciente")
-                st.markdown(ultimo_plan)
-    else:
+       
+        else:
         st.warning("Aún no has generado ningún plan.")
         st.divider()
 
@@ -131,7 +126,13 @@ def main():
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
                 submitted = st.form_submit_button("✅ Generar plan para mañana")
-
+ 
+        if st.button("👁️ Mostrar mi plan para mañana"):
+                    if not historial_df.empty:
+                        ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
+                        st.markdown("---")
+                        st.subheader("📋 Tu Plan Más Reciente")
+                        st.markdown(ultimo_plan)
             if submitted:
                 if not plan_semana_actual:
                     st.error("Primero debes generar un plan semanal.")
