@@ -50,6 +50,13 @@ def main():
             del st.session_state['logged_in']
             del st.session_state['username']
             st.rerun()
+            
+        if 'plan_recien_generado' in st.session_state:
+        st.header("🚀 Tu Plan para Mañana")
+        st.markdown(st.session_state['plan_recien_generado'])
+        st.divider()
+        # Limpiamos la variable para que no aparezca en futuras recargas
+        del st.session_state['plan_recien_generado']
 
         # (CORREGIDO) Conexión a servicios de Google en el lugar correcto
         creds_dict = st.secrets["gcp_service_account"]
