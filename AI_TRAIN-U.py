@@ -106,19 +106,17 @@ def main():
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
        
-            else:
-                st.warning("Aún no has generado ningún plan.")
 
-            if "Error" in perfil_usuario:
+        if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
             st.divider()
             
-            else:
-                with st.expander("Ver mi Perfil y Historial Completo"):
-                    st.subheader("Mi Perfil")
-                    st.write(perfil_usuario)
-                    st.subheader("Historial de Registros")
-                    st.dataframe(historial_df)
+        else:
+            with st.expander("Ver mi Perfil y Historial Completo"):
+                st.subheader("Mi Perfil")
+                st.write(perfil_usuario)
+                st.subheader("Historial de Registros")
+                st.dataframe(historial_df)
 
             st.divider()
                     
