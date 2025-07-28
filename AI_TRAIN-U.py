@@ -107,7 +107,7 @@ def main():
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
 
         st.divider()
-        if st.button("👁️ Mostrar mi plan para mañana"):
+            if st.button("👁️ Mostrar mi plan para mañana"):
 
         if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
