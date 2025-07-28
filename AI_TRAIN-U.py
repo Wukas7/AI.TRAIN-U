@@ -106,7 +106,7 @@ def main():
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
        
-        else:
+    else:
         st.warning("Aún no has generado ningún plan.")
         st.divider()
 
