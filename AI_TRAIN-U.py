@@ -106,19 +106,24 @@ def main():
             with st.expander("Ver Plan Original de la Semana"):
                 st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
        
-        else:
-            st.warning("Aún no has generado ningún plan.")
-            st.divider()
+            else:
+                st.warning("Aún no has generado ningún plan.")
 
-        if "Error" in perfil_usuario:
+            if "Error" in perfil_usuario:
             st.error(perfil_usuario["Error"])
-        else:
-            with st.expander("Ver mi Perfil y Historial Completo"):
-                st.subheader("Mi Perfil")
-                st.write(perfil_usuario)
-                st.subheader("Historial de Registros")
-                st.dataframe(historial_df)
-                st.header(f"✍️ Registro del Día")
+            st.divider()
+            
+            else:
+                with st.expander("Ver mi Perfil y Historial Completo"):
+                    st.subheader("Mi Perfil")
+                    st.write(perfil_usuario)
+                    st.subheader("Historial de Registros")
+                    st.dataframe(historial_df)
+
+            st.divider()
+                    
+            st.header(f"✍️ Registro del Día")
+                    
             with st.form("registro_diario_form"):
                 entreno = st.text_area("¿Qué entrenamiento has hecho hoy?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
@@ -127,36 +132,40 @@ def main():
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
                 submitted = st.form_submit_button("✅ Generar plan para mañana")
  
-        if st.button("👁️ Mostrar mi plan para mañana"):
+                if submitted:
+                    if not plan_semana_actual:
+                        st.error("Primero debes generar un plan semanal.")
+                    else:
+                        with st.spinner("Analizando tu día y preparando el plan de mañana..."):
+                            datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
+                            historial_texto = historial_df.tail(3).to_string()
+                            plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
+                            if plan_generado:
+                                partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                                plan_diario_detallado = partes_plan[0].strip()
+                                nueva_fila_datos = [datetime.now().strftime('%Y-%m-%d'), calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
+                                guardar_registro(gspread_client, username, nueva_fila_datos)
+                                dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                                dia_hoy_nombre = dias_semana[(datetime.today().weekday())]
+                                actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, entreno, "✅ Realizado")
+                                st.session_state['plan_recien_generado'] = plan_diario_detallado
+                                if len(partes_plan) > 1:
+                                    st.info("¡La IA ha re-planificado el resto de tu semana!")
+                                st.success("¡Plan para mañana generado y semana actualizada!")
+                                st.markdown(plan_diario_detallado)
+                                st.info("Actualizando la tabla...")
+                                time.sleep(3)
+                                st.rerun()
+
+            if st.button("👁️ Mostrar mi plan para mañana"):
                     if not historial_df.empty:
                         ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
                         st.markdown("---")
                         st.subheader("📋 Tu Plan Más Reciente")
                         st.markdown(ultimo_plan)
-            if submitted:
-                if not plan_semana_actual:
-                    st.error("Primero debes generar un plan semanal.")
-                else:
-                    with st.spinner("Analizando tu día y preparando el plan de mañana..."):
-                        datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
-                        historial_texto = historial_df.tail(3).to_string()
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
-                        if plan_generado:
-                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                            plan_diario_detallado = partes_plan[0].strip()
-                            nueva_fila_datos = [datetime.now().strftime('%Y-%m-%d'), calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
-                            guardar_registro(gspread_client, username, nueva_fila_datos)
-                            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                            dia_hoy_nombre = dias_semana[(datetime.today().weekday())]
-                            actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, entreno, "✅ Realizado")
-                            st.session_state['plan_recien_generado'] = plan_diario_detallado
-                            if len(partes_plan) > 1:
-                                st.info("¡La IA ha re-planificado el resto de tu semana!")
-                            st.success("¡Plan para mañana generado y semana actualizada!")
-                            st.markdown(plan_diario_detallado)
-                            st.info("Actualizando la tabla...")
-                            time.sleep(3)
-                            st.rerun()
+
+                    else:
+                        st.warning("Aún no has generado ningún plan.")
 
 if __name__ == '__main__':
     main()
