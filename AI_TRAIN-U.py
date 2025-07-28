@@ -7,6 +7,7 @@ from google.oauth2.service_account import Credentials
 import google.generativeai as genai
 from datetime import datetime, timedelta
 import time
+import json
 
 # --- 1. FUNCIONES DE SEGURIDAD Y BASE DE DATOS DE LOGIN ---
 def make_hashes(password):
@@ -246,11 +247,17 @@ def main():
             del st.session_state['username']
             st.rerun()
 
-        creds_dict = st.secrets["gcp_service_account"]
-        scopes = ["https.www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
-        gspread_client = gspread.authorize(creds)
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+            scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+            # Leemos el diccionario de credenciales desde los secrets de Streamlit
+            creds_dict = st.secrets["gcp_service_account"]
+
+            # Convertimos el diccionario a un string JSON, que es lo que la librería espera
+            creds_json_str = json.dumps(creds_dict)
+
+            # Usamos el método recomendado: from_service_account_info a partir del string JSON
+            creds = Credentials.from_service_account_info(json.loads(creds_json_str), scopes=scopes)
+            gspread_client = gspread.authorize(creds)
 
         perfil_usuario = cargar_perfil(gspread_client, username)
         historial_df = cargar_historial(gspread_client, username)
