@@ -139,7 +139,7 @@ def main():
                     if not plan_semana_actual:
                         st.error("Primero debes generar un plan semanal.")
                     else:
-                        with st.spinner("Analizando tu día y preparando el plan de mañana..."):
+                        with st.spinner("Analizando tu día y preparando el nuevo plan..."):
                             datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
                             historial_texto = historial_df.tail(3).to_string()
                             plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
@@ -147,24 +147,26 @@ def main():
                                 partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                                 plan_diario_detallado = partes_plan[0].strip()
                                 fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                                
                                 nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
+                                
                                 guardar_registro(gspread_client, username, nueva_fila_datos)
                                 dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                                 dia_a_actualizar_nombre = dias[fecha_registro.weekday()] 
-                                plan_hoy_previsto = plan_semana_actual.get(f"{dia_a_actualizar_nombre}_Plan", "")
-                                dia_hoy_nombre = dias_semana[(datetime.today().weekday())]
+                                
+                                plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
                                 
                                 if entreno.lower() in plan_hoy_previsto.lower() or plan_hoy_previsto.lower() in entreno.lower():
                                     estado_hoy = "✅ Realizado"
                                 else:
                                     estado_hoy = f"🔄 Modificado"
                                     
-                                actualizar_plan_completo(gspread_client, username, dia_hoy_nombre, entreno, "✅ Realizado")
+                                nuevo_plan_realizado = entreno
+                                actualizar_plan_completo(gspread_client, username, dia_a_actualizar, nuevo_plan_realizado, nuevo_estado)
+
                                 st.session_state['plan_recien_generado'] = plan_diario_detallado
                                 if len(partes_plan) > 1:
                                     st.info("¡La IA ha re-planificado el resto de tu semana!")
-                                st.success("¡Plan para mañana generado y semana actualizada!")
+                                st.success("¡Plan generado y semana actualizada!")
                                 st.markdown(plan_diario_detallado)
                                 st.info("Actualizando la tabla...")
                                 time.sleep(3)
@@ -182,5 +184,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
