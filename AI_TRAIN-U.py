@@ -97,9 +97,7 @@ def main():
        
 
         if "Error" in perfil_usuario:
-            st.error(perfil_usuario["Error"])
-            st.divider()
-            
+            st.error(perfil_usuario["Error"])           
         else:
             with st.expander("Ver mi Perfil y Historial Completo"):
                 st.subheader("Mi Perfil")
@@ -112,11 +110,7 @@ def main():
             st.header(f"✍️ Registro del Día")
                     
             with st.form("registro_diario_form"):
-                fecha_registro = st.date_input(
-                    "¿Para qué día es este registro?",
-                    value=datetime.today(), # Por defecto, la fecha de hoy
-                    max_value=datetime.today() # Para evitar que registren días futuros
-                )
+                fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
@@ -173,6 +167,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
