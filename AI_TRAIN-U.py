@@ -158,7 +158,7 @@ def main():
                             if entreno.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in entreno.strip().lower():
                                 nuevo_estado = "✅ Realizado"
                             else:
-                                nuevo_estado = "🔄 Modificado
+                                nuevo_estado = "🔄 Modificado"
                                     
                             actualizar_plan_completo(gspread_client, username, dia_a_actualizar, entreno, nuevo_estado)
 
@@ -184,6 +184,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
