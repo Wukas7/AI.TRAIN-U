@@ -117,6 +117,26 @@ def main():
                     
             with st.form("registro_diario_form"):
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
+                df_entreno_vacio = pd.DataFrame(
+                    [
+                        {"Ejercicio": "Press Banca", "Series": 4, "Repeticiones": 8, "Peso_kg": 80.0},
+                        {"Ejercicio": "", "Series": "", "Repeticiones": "", "Peso_kg": ""},
+                        {"Ejercicio": "", "Series": "", "Repeticiones": "", "Peso_kg": ""},
+                    ]
+                )
+                entreno_registrado_df = st.data_editor(
+                    df_entreno_vacio,
+                    num_rows="dynamic", # Permite añadir/borrar filas
+                    column_config={ # (Opcional) Configuración para mejorar la experiencia
+                        "Peso_kg": st.column_config.NumberColumn(
+                            "Peso (kg)",
+                            help="El peso levantado en kilogramos",
+                            min_value=0,
+                            format="%.2f kg",
+                        ),
+                    }
+                )
+                
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
@@ -204,6 +224,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
