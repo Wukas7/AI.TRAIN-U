@@ -69,13 +69,21 @@ def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual,fe
         - **Disponibilidad:** {perfil.get('Disponibilidad', 'No especificada')}
         - **Equipamiento:** {perfil.get('Equipamiento', 'No especificado')}
     - Historial reciente: {historial_str}
-    - Datos del día del registro: {datos_hoy}
+       
+    **DATOS DEL ENTRENAMIENTO DE HOY ({fecha_de_registro.strftime('%d/%m')}):**
+    - Sensaciones y datos generales: {datos_hoy}
 
+    **HISTORIAL DETALLADO DE EJERCICIOS (PESOS Y REPETICIONES):**
+    {historial_detallado_str}
+    
     **TU TAREA:**
-    1. **Analiza el entrenamiento de hoy.** Compara lo que hice (`{datos_hoy['entreno']}`) con lo que estaba planeado.
-    2. **Crea el plan detallado para mañana.** Adáptalo si mis sensaciones de hoy lo requieren (dolor, cansancio). ** Los ejercicios específicos que elijas DEBEN ser realizables con el EQUIPAMIENTO disponible. Si el equipamiento es "solo peso corporal", no puedes sugerir press banca.
-    3. **(IMPORTANTE) Re-planifica si es necesario.** Si el entrenamiento de hoy fue muy diferente a lo planeado (ej: hice pierna cuando tocaba pecho), el resto de la semana podría necesitar ajustes para mantener el equilibrio. Si crees que hay que cambiar el plan para los días siguientes, añade una sección al final de tu respuesta llamada `### 🔄 Sugerencia de Re-planificación Semanal` con la nueva estructura para los días que quedan. Si no hay cambios necesarios, no incluyas esta sección.
-  
+    1. **ANALIZA EL HISTORIAL DETALLADO.** Fíjate en los pesos y repeticiones de los ejercicios clave de las últimas sesiones.
+    2. **CREA EL PLAN DE ENTRENAMIENTO PARA MAÑANA APLICANDO SOBRECARGA PROGRESIVA.** Para cada ejercicio, sugiere un peso y número de repeticiones que suponga un reto basado en el historial. Por ejemplo, si la semana pasada hizo "Press Banca 3x8 80kg", sugiere "Press Banca 3x8 82.5kg" o "Press Banca 3x9 80kg". **Sé explícito con los pesos a usar.**
+    3. **Analiza el entrenamiento de hoy.** Compara lo que hice (`{datos_hoy['entreno']}`) con lo que estaba planeado.
+    4. **Crea el plan detallado para mañana.** Adáptalo si mis sensaciones de hoy lo requieren (dolor, cansancio). ** Los ejercicios específicos que elijas DEBEN ser realizables con el EQUIPAMIENTO disponible. Si el equipamiento es "solo peso corporal", no puedes sugerir press banca.
+    5. **(IMPORTANTE) Re-planifica si es necesario.** Si el entrenamiento de hoy fue muy diferente a lo planeado (ej: hice pierna cuando tocaba pecho), el resto de la semana podría necesitar ajustes para mantener el equilibrio. Si crees que hay que cambiar el plan para los días siguientes, añade una sección al final de tu respuesta llamada `### 🔄 Sugerencia de Re-planificación Semanal` con la nueva estructura para los días que quedan. Si no hay cambios necesarios, no incluyas esta sección.
+    6. **CREA EL PLAN DE DIETA Y EL CONSEJO DEL DÍA** como siempre.
+
     **FORMATO DE RESPUESTA:**
     ### 🏋️ Plan de Entrenamiento para Mañana
     ...
