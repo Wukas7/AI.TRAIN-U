@@ -133,57 +133,58 @@ def main():
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
-                submitted = st.form_submit_button("✅ Generar plan para mañana")
+                submitted = st.form_submit_button("✅ Generar nuevo plan")
  
-                if submitted:
-                    if not plan_semana_actual:
-                        st.error("Primero debes generar un plan semanal.")
-                    else:
-                        with st.spinner("Analizando tu día y preparando el nuevo plan..."):
-                            datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
-                            historial_texto = historial_df.tail(3).to_string()
-                            plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
-                            if plan_generado:
-                                partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                                plan_diario_detallado = partes_plan[0].strip()
-                                fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                                nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
+            if submitted:
+                if not plan_semana_actual:
+                    st.error("Primero debes generar un plan semanal antes de registrar tu día.")
+                else:
+                    with st.spinner("Analizando tu día y preparando el nuevo plan..."):
+                        datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
+                        historial_texto = historial_df.tail(3).to_string()
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
+                        if plan_generado:
+                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                            plan_diario_detallado = partes_plan[0].strip()
+                            fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
+                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
                                 
-                                guardar_registro(gspread_client, username, nueva_fila_datos)
-                                dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                                dia_a_actualizar_nombre = dias[fecha_registro.weekday()] 
+                            guardar_registro(gspread_client, username, nueva_fila_datos)
+                            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                            dia_a_actualizar = dias_semana[fecha_registro.weekday()]
                                 
-                                plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
-                                
-                                if entreno.lower() in plan_hoy_previsto.lower() or plan_hoy_previsto.lower() in entreno.lower():
-                                    estado_hoy = "✅ Realizado"
-                                else:
-                                    estado_hoy = f"🔄 Modificado"
+                            plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
+                            
+                            if entreno.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in entreno.strip().lower():
+                                nuevo_estado = "✅ Realizado"
+                            else:
+                                nuevo_estado = "🔄 Modificado
                                     
-                                nuevo_plan_realizado = entreno
-                                actualizar_plan_completo(gspread_client, username, dia_a_actualizar, nuevo_plan_realizado, nuevo_estado)
+                            actualizar_plan_completo(gspread_client, username, dia_a_actualizar, entreno, nuevo_estado)
 
-                                st.session_state['plan_recien_generado'] = plan_diario_detallado
-                                if len(partes_plan) > 1:
-                                    st.info("¡La IA ha re-planificado el resto de tu semana!")
-                                st.success("¡Plan generado y semana actualizada!")
-                                st.markdown(plan_diario_detallado)
-                                st.info("Actualizando la tabla...")
-                                time.sleep(3)
-                                st.rerun()
+                            st.session_state['plan_recien_generado'] = plan_diario_detallado
+                            if len(partes_plan) > 1:
+                                st.info("¡La IA ha re-planificado el resto de tu semana!")
+                            st.success("¡Plan generado y semana actualizada!")
+                            st.info("Actualizando la tabla...")
+                            time.sleep(3)
+                            st.rerun()
 
-            if st.button("👁️ Mostrar mi plan para mañana"):
-                    if not historial_df.empty:
-                        ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
-                        st.markdown("---")
-                        st.subheader("📋 Tu Plan Más Reciente")
-                        st.markdown(ultimo_plan)
-
-                    else:
-                        st.warning("Aún no has generado ningún plan.")
+        if st.button("👁️ Mostrar mi plan para mañana"):
+             if not historial_df.empty:
+               if 'Plan_Generado' in historial_df.columns:
+                    ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
+                    st.markdown("---")
+                    st.subheader("📋 Tu Plan Más Reciente")
+                    st.markdown(ultimo_plan)
+                else:
+                    st.warning("La columna 'Plan_Generado' no se encontró en el historial.")
+            else:
+                 st.warning("Aún no has generado ningún plan.")
 
 if __name__ == '__main__':
     main()
+
 
 
 
