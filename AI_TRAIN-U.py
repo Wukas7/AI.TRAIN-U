@@ -143,15 +143,26 @@ def main():
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
                 submitted = st.form_submit_button("✅ Generar nuevo plan")
- 
+
+            historial_detallado_df = cargar_historial_detallado(gspread_client, username)
+            
             if submitted:
                 if not plan_semana_actual:
                     st.error("Primero debes generar un plan semanal antes de registrar tu día.")
                 else:
                     with st.spinner("Analizando tu día y preparando el nuevo plan..."):
                         datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
+                        # Guardamos el entreno detallado que el usuario introdujo en la tabla
+                        fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
+                        guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+
+                        # Preparamos un resumen del historial detallado para la IA
+                        historial_detallado_texto = historial_detallado_df.tail(20).to_string() # Le pasamos las últimas 20 series
+
+                        # Llamamos a la IA con el nuevo historial
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semanal_actual, fecha_registro)
                         historial_texto = historial_df.tail(3).to_string()
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
+                        
                         if plan_generado:
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                             plan_diario_detallado = partes_plan[0].strip()
@@ -159,6 +170,11 @@ def main():
                             nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]                                
                             guardar_registro(gspread_client, username, nueva_fila_datos)
 
+                            resumen_entreno_hoy = "\n".join(
+                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                                for index, row in entreno_registrado_df.iterrows() if row['Ejercicio']
+                            )
+                    
                             #RACHA DE DIAS
                             racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
@@ -224,6 +240,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
