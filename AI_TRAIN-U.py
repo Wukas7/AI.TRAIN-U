@@ -171,7 +171,7 @@ def main():
                             st.rerun()
 
             if st.button("👁️ Mostrar mi plan para mañana"):
-                 if not historial_df.empty:
+                if not historial_df.empty:
                     if 'Plan_Generado' in historial_df.columns:
                         ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
                         st.markdown("---")
@@ -184,6 +184,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
