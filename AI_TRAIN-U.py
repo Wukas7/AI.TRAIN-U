@@ -131,7 +131,7 @@ def main():
                     with st.spinner("Analizando tu día y preparando el nuevo plan..."):
                         datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
                         historial_texto = historial_df.tail(3).to_string()
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semana_actual)
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_texto, datos_de_hoy, plan_semanal_actual, fecha_registro)
                         if plan_generado:
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                             plan_diario_detallado = partes_plan[0].strip()
@@ -173,6 +173,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
