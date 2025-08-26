@@ -78,26 +78,15 @@ def main():
         if not plan_semana_actual:
             st.info("Aún no tienes un plan para esta semana.")
             if st.button("💪 ¡Generar mi plan para la semana!"):
-                with st.spinner("Generando tu plan estratégico..."):
+                with st.spinner("Generando tu plan estratégico para la semana..."):
                     historial_mes_str = historial_df.tail(30).to_string()
                     plan_semanal_generado_str = generar_plan_semanal(perfil_usuario, historial_mes_str)
 
                     if plan_semanal_generado_str:
                         guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado_str)
-                        st.success("¡Estructura semanal guardada! Generando plan para el Lunes...")
-                        time.sleep(1)
-
-                        plan_recien_creado = cargar_plan_semana(gspread_client, username)
-                        if plan_recien_creado:
-                            datos_ficticios_domingo = {"entreno": "Descanso", "sensaciones": "Listo para empezar"}
-                            plan_detallado_lunes = generar_plan_diario(perfil_usuario, historial_mes_str, datos_ficticios_domingo, plan_recien_creado)
-                            if plan_detallado_lunes:
-                                st.session_state['plan_recien_generado'] = plan_detallado_lunes
-                                plan_del_lunes = plan_recien_creado.get("Lunes_Plan", "No definido")
-                                actualizar_plan_completo(gspread_client, username, "Lunes", plan_del_lunes, "✅ Planificado")
-                                st.success("¡Planes generados! Recargando...")
-                                time.sleep(2)
-                                st.rerun()
+                        st.success("¡Plan semanal generado con éxito! Ahora ya puedes registrar tu primer día.")
+                        time.sleep(3)
+                        st.rerun()
         else:
             st.subheader("Plan Actualizado de la Semana")
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -184,6 +173,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
