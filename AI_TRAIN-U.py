@@ -45,34 +45,12 @@ def main():
         # --- APLICACIÓN PRINCIPAL (SI EL LOGIN ES CORRECTO) ---
         username = st.session_state['username']
 
-        # --- (NUEVO) LÓGICA DEL POP-UP Y CELEBRACIÓN DE RACHA ---
-        racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
-
-        # Comprobamos si venimos de una celebración guardada en session_state
-        if 'celebrar_racha' in st.session_state:
-            racha_celebrada = st.session_state['celebrar_racha']
-            st.success(f"🎉 ¡Felicidades! ¡Has alcanzado una racha de {racha_celebrada} días! ¡Sigue así! 🎉")
-            st.balloons()
-            del st.session_state['celebrar_racha'] # Limpiamos para que no vuelva a salir
-    
-        # Mostramos el pop-up (toast) si hay racha
-        elif racha_actual > 0:
-            st.toast(f"🔥 ¡Llevas {racha_actual} día(s) de racha! ¡A por más!", icon="🔥")
-
-
         st.sidebar.success(f"Conectado como: **{username}**")
         if st.sidebar.button("Logout"):
             del st.session_state['logged_in']
             del st.session_state['username']
             st.rerun()
             
-        if 'plan_recien_generado' in st.session_state:
-            st.header("🚀 Tu Plan para Mañana")
-            st.markdown(st.session_state['plan_recien_generado'])
-            st.divider()
-        # Limpiamos la variable para que no aparezca en futuras recargas
-            del st.session_state['plan_recien_generado']
-
         # (CORREGIDO) Conexión a servicios de Google en el lugar correcto
         creds_dict = st.secrets["gcp_service_account"]
         scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -84,10 +62,14 @@ def main():
         historial_df = cargar_historial(gspread_client, username)
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
 
+        
         if 'plan_recien_generado' in st.session_state:
-            st.header("🚀 Tu Plan Detallado para el Primer Día")
+            st.header("🚀 Tu Plan para Mañana")
             st.markdown(st.session_state['plan_recien_generado'])
+            st.divider()
+        # Limpiamos la variable para que no aparezca en futuras recargas
             del st.session_state['plan_recien_generado']
+
 
         st.header("🗓️ Tu Hoja de Ruta Semanal")
         if not plan_semana_actual:
@@ -213,6 +195,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
