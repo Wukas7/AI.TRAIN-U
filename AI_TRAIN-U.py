@@ -170,20 +170,21 @@ def main():
                             time.sleep(3)
                             st.rerun()
 
-        if st.button("👁️ Mostrar mi plan para mañana"):
-             if not historial_df.empty:
-               if 'Plan_Generado' in historial_df.columns:
-                    ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
-                    st.markdown("---")
-                    st.subheader("📋 Tu Plan Más Reciente")
-                    st.markdown(ultimo_plan)
+            if st.button("👁️ Mostrar mi plan para mañana"):
+                 if not historial_df.empty:
+                    if 'Plan_Generado' in historial_df.columns:
+                        ultimo_plan = historial_df.iloc[-1]['Plan_Generado']
+                        st.markdown("---")
+                        st.subheader("📋 Tu Plan Más Reciente")
+                        st.markdown(ultimo_plan)
+                    else:
+                        st.warning("La columna 'Plan_Generado' no se encontró en el historial.")
                 else:
-                    st.warning("La columna 'Plan_Generado' no se encontró en el historial.")
-            else:
-                 st.warning("Aún no has generado ningún plan.")
+                     st.warning("Aún no has generado ningún plan.")
 
 if __name__ == '__main__':
     main()
+
 
 
 
