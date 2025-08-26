@@ -62,6 +62,15 @@ def main():
         historial_df = cargar_historial(gspread_client, username)
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
 
+        # Lógica del Pop-up y Celebración de Racha
+        racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
+        if 'celebrar_racha' in st.session_state:
+            racha_celebrada = st.session_state['celebrar_racha']
+            st.success(f"🎉 ¡Felicidades! ¡Has alcanzado una racha de {racha_celebrada} días! ¡Sigue así! 🎉")
+            st.balloons()
+            del st.session_state['celebrar_racha']
+        elif racha_actual > 0:
+            st.toast(f"🔥 ¡Llevas {racha_actual} día(s) de racha! ¡A por más!", icon="🔥")
         
         if 'plan_recien_generado' in st.session_state:
             st.header("🚀 Tu Plan para Mañana")
@@ -195,6 +204,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
