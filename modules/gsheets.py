@@ -108,3 +108,45 @@ def actualizar_plan_completo(client, username, dia, nuevo_plan, nuevo_estado):
             
     except Exception as e:
         st.warning(f"No se pudo actualizar el plan semanal: {e}")
+
+# --- (NUEVA) FUNCIÓN PARA GUARDAR EL ENTRENO DETALLADO ---
+def guardar_entreno_detallado(client, username, fecha, df_entreno):
+    """Guarda cada fila de un DataFrame de entreno en el Sheet."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Registro_Detallado")
+        
+        # Preparamos las filas para añadir
+        filas_a_anadir = []
+        for index, row in df_entreno.iterrows():
+            # Ignoramos filas vacías
+            if row["Ejercicio"] and row["Repeticiones"] and row["Peso_kg"]:
+                filas_a_anadir.append([
+                    username,
+                    fecha,
+                    row["Ejercicio"],
+                    row["Serie"],
+                    row["Repeticiones"],
+                    row["Peso_kg"]
+                ])
+        
+        if filas_a_anadir:
+            sheet.append_rows(filas_a_anadir) # append_rows es más eficiente
+            return True
+        return False
+        
+    except Exception as e:
+        st.error(f"Error al guardar el entreno detallado: {e}")
+        return False
+
+# --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
+def cargar_historial_detallado(client, username):
+    """Carga el historial de ejercicios detallado."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Registro_Detallado")
+        data = sheet.get_all_records()
+        df = pd.DataFrame(data)
+        if df.empty:
+            return pd.DataFrame()
+        return df[df['UserID'] == username]
+    except Exception:
+        return pd.DataFrame()
