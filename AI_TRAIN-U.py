@@ -127,6 +127,7 @@ def main():
                     "¿Para qué día es este registro?",
                     value=datetime.today(), # Por defecto, la fecha de hoy
                     max_value=datetime.today() # Para evitar que registren días futuros
+                )
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
@@ -181,4 +182,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
