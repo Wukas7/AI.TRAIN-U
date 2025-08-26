@@ -44,7 +44,22 @@ def main():
     else:
         # --- APLICACIÓN PRINCIPAL (SI EL LOGIN ES CORRECTO) ---
         username = st.session_state['username']
-        
+
+        # --- (NUEVO) LÓGICA DEL POP-UP Y CELEBRACIÓN DE RACHA ---
+        racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
+
+        # Comprobamos si venimos de una celebración guardada en session_state
+        if 'celebrar_racha' in st.session_state:
+            racha_celebrada = st.session_state['celebrar_racha']
+            st.success(f"🎉 ¡Felicidades! ¡Has alcanzado una racha de {racha_celebrada} días! ¡Sigue así! 🎉")
+            st.balloons()
+            del st.session_state['celebrar_racha'] # Limpiamos para que no vuelva a salir
+    
+        # Mostramos el pop-up (toast) si hay racha
+        elif racha_actual > 0:
+            st.toast(f"🔥 ¡Llevas {racha_actual} día(s) de racha! ¡A por más!", icon="🔥")
+
+
         st.sidebar.success(f"Conectado como: **{username}**")
         if st.sidebar.button("Logout"):
             del st.session_state['logged_in']
@@ -130,9 +145,40 @@ def main():
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                             plan_diario_detallado = partes_plan[0].strip()
                             fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]
-                                
+                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]                                
                             guardar_registro(gspread_client, username, nueva_fila_datos)
+
+                            #RACHA DE DIAS
+                            racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
+                            ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
+
+                            # Convertimos la fecha de hoy y la última fecha a objetos 'date' para poder compararlas
+                            fecha_de_hoy_obj = fecha_registro.date() if hasattr(fecha_registro, 'date') else fecha_registro
+
+                            if ultimo_dia_str:
+                                ultimo_dia_obj = datetime.strptime(ultimo_dia_str, '%Y-%m-%d').date()
+                                diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
+
+                                if diferencia_dias == 1:
+                                    # La racha continúa, la incrementamos
+                                    racha_actual += 1
+                                elif diferencia_dias > 1:
+                                    # Se rompió la racha, la reseteamos a 1
+                                    racha_actual = 1
+                                # Si diferencia_dias es 0 o menos, no hacemos nada (es el mismo día o un día anterior ya registrado)
+                            else:
+                                # Es el primer registro, la racha empieza en 1
+                                racha_actual = 1
+        
+                            # Guardamos los nuevos valores en el Google Sheet
+                            actualizar_perfil_usuario(gspread_client, username, "Racha_Actual", racha_actual)
+                            actualizar_perfil_usuario(gspread_client, username, "Ultimo_Dia_Registrado", fecha_de_hoy_obj.strftime('%Y-%m-%d'))
+
+                            # Guardamos la racha en session_state para mostrar el confeti después del rerun
+                            if racha_actual > 0 and racha_actual % 10 == 0:
+                                st.session_state['celebrar_racha'] = racha_actual
+                                
+                            
                             dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                             dia_a_actualizar = dias_semana[fecha_registro.weekday()]
                                 
@@ -167,6 +213,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
