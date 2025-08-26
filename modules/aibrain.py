@@ -45,14 +45,12 @@ def generar_plan_semanal(perfil, historial_mes_str):
         st.error(f"Error al generar el plan semanal: {e}")
         return None
 
-# (MODIFICADA) La IA ahora también puede sugerir una re-planificación
-def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual):
+def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual,fecha_de_registro):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
-    # --- (NUEVO) AÑADIMOS LAS LÍNEAS QUE FALTABAN ---
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    dia_manana_idx = (datetime.today().weekday() + 1) % 7
-    dia_manana_nombre = dias_semana[dia_manana_idx]
+    fecha_manana = fecha_de_registro + timedelta(days=1)
+    dia_manana_nombre = dias_semana[fecha_manana.weekday()]
     lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
     # --------------------------------------------------
 
@@ -61,7 +59,8 @@ def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual):
 
     **CONTEXTO ESTRATÉGICO:**
     - El plan original para la semana es: {plan_semanal_actual.get('Plan_Original_Completo', '')}
-    - Mañana es {dia_manana_nombre} y el plan dice que toca: **{lo_que_toca_manana}**.
+    - El día del registro es {fecha_de_registro.strftime('%A, %d de %B')}.
+    - Por lo tanto, el plan a generar es para **mañana, {fecha_manana.strftime('%A, %d de %B')}**, y el plan general dice que toca: **{lo_que_toca_manana}**.
 
     **REALIDAD (HOY Y PERFIL):**
     - Perfil Completo:
@@ -70,7 +69,7 @@ def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semanal_actual):
         - **Disponibilidad:** {perfil.get('Disponibilidad', 'No especificada')}
         - **Equipamiento:** {perfil.get('Equipamiento', 'No especificado')}
     - Historial reciente: {historial_str}
-    - Datos de hoy: {datos_hoy}
+    - Datos del día del registro: {datos_hoy}
 
     **TU TAREA:**
     1. **Analiza el entrenamiento de hoy.** Compara lo que hice (`{datos_hoy['entreno']}`) con lo que estaba planeado.
