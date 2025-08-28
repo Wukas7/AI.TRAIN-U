@@ -169,7 +169,7 @@ def main():
                         perfil_usuario, 
                         historial_detallado_texto, # <--- Le pasamos la variable que acabamos de crear
                         datos_de_hoy, 
-                        plan_semanal_actual, 
+                        plan_semana_actual, 
                         fecha_registro
                     )
 
@@ -250,6 +250,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
