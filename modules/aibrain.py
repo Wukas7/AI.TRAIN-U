@@ -45,7 +45,7 @@ def generar_plan_semana(perfil, historial_mes_str):
         st.error(f"Error al generar el plan semanal: {e}")
         return None
 
-def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semana_actual,fecha_de_registro):
+def generar_plan_diario(perfil, historial_texto, datos_hoy, plan_semana_actual,fecha_de_registro):
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
