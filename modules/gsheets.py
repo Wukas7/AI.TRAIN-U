@@ -53,7 +53,7 @@ def guardar_registro(client, username, nueva_fila_datos):
     fila_completa = [username] + nueva_fila_datos
     sheet_registro.append_row(fila_completa)
     
-def guardar_plan_semanal_nuevo(client, username, plan_generado_str):
+def guardar_plan_semana_nuevo(client, username, plan_generado_str):
     """Guarda un plan semanal recién creado, rellenando correctamente todas las columnas."""
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
