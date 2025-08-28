@@ -12,6 +12,7 @@ from modules.auth import create_usertable, login_user, make_hashes
 from modules.gsheets import (
     cargar_perfil, cargar_historial, cargar_plan_semana,
     guardar_registro, guardar_plan_semanal_nuevo, actualizar_plan_completo
+    cargar_historial_detallado, guardar_entreno_detallado
 )
 from modules.aibrain import generar_plan_semanal, generar_plan_diario
 
@@ -61,7 +62,8 @@ def main():
         perfil_usuario = cargar_perfil(gspread_client, username)
         historial_df = cargar_historial(gspread_client, username)
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
-
+        historial_detallado_df = cargar_historial_detallado(gspread_client, username)
+        
         # Lógica del Pop-up y Celebración de Racha
         racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
         if 'celebrar_racha' in st.session_state:
@@ -240,6 +242,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
