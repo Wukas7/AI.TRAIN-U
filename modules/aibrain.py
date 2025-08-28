@@ -74,7 +74,7 @@ def generar_plan_diario(perfil, historial_str, datos_hoy, plan_semana_actual,fec
     - Sensaciones y datos generales: {datos_hoy}
 
     **HISTORIAL DETALLADO DE EJERCICIOS (PESOS Y REPETICIONES):**
-    {historial_detallado_str}
+    {historial_detallado_texto}
     
     **TU TAREA:**
     1. **ANALIZA EL HISTORIAL DETALLADO.** Fíjate en los pesos y repeticiones de los ejercicios clave de las últimas sesiones.
