@@ -122,8 +122,8 @@ def main():
                 df_entreno_vacio = pd.DataFrame(
                     [
                         {"Ejercicio": "Press Banca", "Series": 4, "Repeticiones": 8, "Peso_kg": 80.0},
-                        {"Ejercicio": "", "Series": "", "Repeticiones": "", "Peso_kg": ""},
-                        {"Ejercicio": "", "Series": "", "Repeticiones": "", "Peso_kg": ""},
+                        {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
+                        {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
                     ]
                 )
                 entreno_registrado_df = st.data_editor(
@@ -250,6 +250,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
