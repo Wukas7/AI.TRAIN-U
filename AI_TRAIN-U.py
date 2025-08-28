@@ -10,7 +10,7 @@ import time
 # --- IMPORTAMOS NUESTROS MÓDULOS ---
 from modules.auth import create_usertable, login_user, make_hashes
 from modules.gsheets import (
-    cargar_perfil, cargar_historial, cargar_plan_semana,
+    cargar_perfil, cargar_historial, cargar_plan_semanal,
     guardar_registro, guardar_plan_semanal_nuevo, actualizar_plan_completo,
     cargar_historial_detallado, guardar_entreno_detallado
 )
@@ -61,7 +61,7 @@ def main():
 
         perfil_usuario = cargar_perfil(gspread_client, username)
         historial_df = cargar_historial(gspread_client, username)
-        plan_semana_actual = cargar_plan_semana(gspread_client, username)
+        plan_semanal_actual = cargar_plan_semanal(gspread_client, username)
         historial_detallado_df = cargar_historial_detallado(gspread_client, username)
         
         # Lógica del Pop-up y Celebración de Racha
@@ -83,7 +83,7 @@ def main():
 
 
         st.header("🗓️ Tu Hoja de Ruta Semanal")
-        if not plan_semana_actual:
+        if not plan_semanal_actual:
             st.info("Aún no tienes un plan para esta semana.")
             if st.button("💪 ¡Generar mi plan para la semana!"):
                 with st.spinner("Generando tu plan estratégico para la semana..."):
@@ -98,10 +98,10 @@ def main():
         else:
             st.subheader("Plan Actualizado de la Semana")
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            plan_data = {"Día": dias, "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias], "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias]}
+            plan_data = {"Día": dias, "Plan": [plan_semanal_actual.get(f"{dia}_Plan", "-") for dia in dias], "Estado": [plan_semanal_actual.get(f"{dia}_Estado", "-") for dia in dias]}
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
-                st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
+                st.text(plan_semanal_actual.get("Plan_Original_Completo", "No disponible."))
        
 
         if "Error" in perfil_usuario:
@@ -149,7 +149,7 @@ def main():
             historial_detallado_df = cargar_historial_detallado(gspread_client, username)
             
             if submitted:
-                if not plan_semana_actual:
+                if not plan_semanal_actual:
                     st.error("Primero debes generar un plan semanal antes de registrar tu día.")
                 else:
                     with st.spinner("Analizando tu día y preparando el nuevo plan..."):
@@ -211,7 +211,7 @@ def main():
                             dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                             dia_a_actualizar = dias_semana[fecha_registro.weekday()]
                                 
-                            plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
+                            plan_previsto = plan_semanal_actual.get(f"{dia_a_actualizar}_Plan", "")
                             
                             if entreno.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in entreno.strip().lower():
                                 nuevo_estado = "✅ Realizado"
@@ -242,6 +242,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
