@@ -10,11 +10,11 @@ import time
 # --- IMPORTAMOS NUESTROS MÓDULOS ---
 from modules.auth import create_usertable, login_user, make_hashes
 from modules.gsheets import (
-    cargar_perfil, cargar_historial, cargar_plan_semanal,
-    guardar_registro, guardar_plan_semanal_nuevo, actualizar_plan_completo,
+    cargar_perfil, cargar_historial, cargar_plan_semana,
+    guardar_registro, guardar_plan_semana_nuevo, actualizar_plan_completo,
     cargar_historial_detallado, guardar_entreno_detallado
 )
-from modules.aibrain import generar_plan_semanal, generar_plan_diario
+from modules.aibrain import generar_plan_semana, generar_plan_diario
 
 # --- 3. CÓDIGO PRINCIPAL DE LA APP ---
 def main():
@@ -61,7 +61,7 @@ def main():
 
         perfil_usuario = cargar_perfil(gspread_client, username)
         historial_df = cargar_historial(gspread_client, username)
-        plan_semanal_actual = cargar_plan_semanal(gspread_client, username)
+        plan_semana_actual = cargar_plan_semana(gspread_client, username)
         historial_detallado_df = cargar_historial_detallado(gspread_client, username)
         
         # Lógica del Pop-up y Celebración de Racha
@@ -83,25 +83,25 @@ def main():
 
 
         st.header("🗓️ Tu Hoja de Ruta Semanal")
-        if not plan_semanal_actual:
+        if not plan_semana_actual:
             st.info("Aún no tienes un plan para esta semana.")
             if st.button("💪 ¡Generar mi plan para la semana!"):
                 with st.spinner("Generando tu plan estratégico para la semana..."):
                     historial_mes_str = historial_df.tail(30).to_string()
-                    plan_semanal_generado_str = generar_plan_semanal(perfil_usuario, historial_mes_str)
+                    plan_semana_generado_str = generar_plan_semana(perfil_usuario, historial_mes_str)
 
-                    if plan_semanal_generado_str:
-                        guardar_plan_semanal_nuevo(gspread_client, username, plan_semanal_generado_str)
+                    if plan_semana_generado_str:
+                        guardar_plan_semana_nuevo(gspread_client, username, plan_semana_generado_str)
                         st.success("¡Plan semanal generado con éxito! Ahora ya puedes registrar tu primer día.")
                         time.sleep(3)
                         st.rerun()
         else:
             st.subheader("Plan Actualizado de la Semana")
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            plan_data = {"Día": dias, "Plan": [plan_semanal_actual.get(f"{dia}_Plan", "-") for dia in dias], "Estado": [plan_semanal_actual.get(f"{dia}_Estado", "-") for dia in dias]}
+            plan_data = {"Día": dias, "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias], "Estado": [plan_semana_actual.get(f"{dia}_Estado", "-") for dia in dias]}
             st.table(pd.DataFrame(plan_data).set_index("Día"))
             with st.expander("Ver Plan Original de la Semana"):
-                st.text(plan_semanal_actual.get("Plan_Original_Completo", "No disponible."))
+                st.text(plan_semana_actual.get("Plan_Original_Completo", "No disponible."))
        
 
         if "Error" in perfil_usuario:
@@ -149,7 +149,7 @@ def main():
             historial_detallado_df = cargar_historial_detallado(gspread_client, username)
             
             if submitted:
-                if not plan_semanal_actual:
+                if not plan_semana_actual:
                     st.error("Primero debes generar un plan semanal antes de registrar tu día.")
                 else:
                     with st.spinner("Analizando tu día y preparando el nuevo plan..."):
@@ -162,7 +162,7 @@ def main():
                         historial_detallado_texto = historial_detallado_df.tail(20).to_string() # Le pasamos las últimas 20 series
 
                         # Llamamos a la IA con el nuevo historial
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semanal_actual, fecha_registro)
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
                         historial_texto = historial_df.tail(3).to_string()
                         
                         if plan_generado:
@@ -211,7 +211,7 @@ def main():
                             dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                             dia_a_actualizar = dias_semana[fecha_registro.weekday()]
                                 
-                            plan_previsto = plan_semanal_actual.get(f"{dia_a_actualizar}_Plan", "")
+                            plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
                             
                             if entreno.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in entreno.strip().lower():
                                 nuevo_estado = "✅ Realizado"
@@ -242,6 +242,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
