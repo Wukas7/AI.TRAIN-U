@@ -164,7 +164,15 @@ def main():
                         # Llamamos a la IA con el nuevo historial
                         plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
                         historial_texto = historial_df.tail(3).to_string()
-                        
+
+                        plan_generado = generar_plan_diario(
+                        perfil_usuario, 
+                        historial_detallado_texto, # <--- Le pasamos la variable que acabamos de crear
+                        datos_de_hoy, 
+                        plan_semanal_actual, 
+                        fecha_registro
+                    )
+
                         if plan_generado:
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                             plan_diario_detallado = partes_plan[0].strip()
@@ -242,6 +250,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
