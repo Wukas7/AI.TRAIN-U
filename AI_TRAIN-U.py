@@ -121,7 +121,7 @@ def main():
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
                 df_entreno_vacio = pd.DataFrame(
                     [
-                        {"Ejercicio": "Press Banca", "Series": 4, "Repeticiones": 8, "Peso_kg": 80.0},
+                        {"Ejercicio": "Press Banca", "Serie": 4, "Repeticiones": 8, "Peso_kg": 80.0},
                         {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
                         {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
                     ]
@@ -250,6 +250,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
