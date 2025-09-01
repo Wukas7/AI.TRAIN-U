@@ -166,37 +166,38 @@ def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_val
 
 
 def cargar_lista_ejercicios(client):
-    """Carga la lista de todos los ejercicios disponibles."""
+    """Carga la lista de todos los ejercicios disponibles de forma robusta y con depuración."""
     try:
+        st.info("Intentando cargar la lista de ejercicios desde Google Sheets...") # Mensaje de depuración
+        
         spreadsheet = client.open("AI.TRAIN-U")
         sheet = spreadsheet.worksheet("Ejercicios")
         
-        # get_all_values() es más robusto que get_col()
-        # Coge todos los datos y luego filtramos la primera columna
+        # Usamos get_all_values para obtener los datos en bruto
         todos_los_valores = sheet.get_all_values()
         
-        # Nos aseguramos de que la hoja no está vacía
+        # Comprobación 1: ¿La hoja tiene contenido?
         if len(todos_los_valores) < 2:
-            st.warning("La pestaña 'Ejercicios' está vacía o solo tiene cabecera.")
-            return ["Press Banca (ejemplo)", "Sentadilla (ejemplo)"] # Lista de emergencia
-            
-        # Creamos la lista a partir de la primera columna, saltando la cabecera
-        # fila[0] coge el primer elemento de cada fila
-        lista_ejercicios = [fila[0] for fila in todos_los_valores[1:] if fila[0].strip() != ""]
-        
-        if not lista_ejercicios:
-             st.warning("No se encontraron ejercicios en la primera columna de la pestaña 'Ejercicios'.")
-             return ["Press Banca (ejemplo)", "Sentadilla (ejemplo)"]
+            st.error("Error Crítico: La pestaña 'Ejercicios' está vacía o solo tiene cabecera. Por favor, añade ejercicios.")
+            return ["Error: Hoja vacía"]
 
-        return lista_ejercicios
+        # Creamos la lista a partir de la PRIMERA columna (índice 0), saltando la cabecera (índice 0)
+        lista_ejercicios = [fila[0] for fila in todos_los_valores[1:] if fila and fila[0].strip() != ""]
         
+        # Comprobación 2: ¿Hemos encontrado ejercicios?
+        if not lista_ejercicios:
+            st.error("Error Crítico: No se encontraron ejercicios en la primera columna de la pestaña 'Ejercicios'.")
+            return ["Error: Columna vacía"]
+
+        st.success(f"¡Lista de {len(lista_ejercicios)} ejercicios cargada con éxito!") # Mensaje de éxito
+        return sorted(lista_ejercicios) # Devolvemos la lista ordenada alfabéticamente
+
     except gspread.exceptions.WorksheetNotFound:
-        st.error("Error Crítico: No se encontró la pestaña 'Ejercicios' en tu Google Sheet. Por favor, créala.")
+        st.error("Error Crítico: No se encontró la pestaña llamada 'Ejercicios' en tu Google Sheet. Por favor, créala y añade una columna 'Nombre_Ejercicio'.")
         return ["Error: Pestaña no encontrada"]
     except Exception as e:
-        # ¡ESTO NOS DIRÁ EL ERROR REAL!
         st.error(f"Ocurrió un error inesperado al cargar la lista de ejercicios: {e}")
-        return ["Error al cargar"]
+        return ["Error: Fallo al cargar"]
 
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
 def cargar_historial_detallado(client, username):
