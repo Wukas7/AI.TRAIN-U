@@ -8,7 +8,7 @@ import gspread
 @st.cache_data(ttl=60)
 def cargar_perfil(_client, username):
     try:
-        spreadsheet = client.open("AI.TRAIN-U")
+        spreadsheet = _client.open("AI.TRAIN-U")
         sheet_perfil = spreadsheet.worksheet("Perfil")
         data = sheet_perfil.get_all_records()
         df = pd.DataFrame(data)
@@ -23,7 +23,7 @@ def cargar_perfil(_client, username):
 @st.cache_data(ttl=60)
 def cargar_historial(_client, username):
     try:
-        spreadsheet = client.open("AI.TRAIN-U")
+        spreadsheet = _client.open("AI.TRAIN-U")
         sheet_registro = spreadsheet.worksheet("Registro_Diario")
         data = sheet_registro.get_all_records()
         df = pd.DataFrame(data)
@@ -36,7 +36,7 @@ def cargar_historial(_client, username):
 def cargar_plan_semana(_client, username):
     """(NUEVA) Carga el plan de la semana actual para un usuario."""
     try:
-        sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
+        sheet = _client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
         data = sheet.get_all_records()
         if not data: return None
         df = pd.DataFrame(data)
@@ -171,7 +171,7 @@ def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_val
 def cargar_lista_ejercicios(_client):
     """Carga la lista de todos los ejercicios disponibles."""
     try:
-        sheet = client.open("AI.TRAIN-U").worksheet("Ejercicios")
+        sheet = _client.open("AI.TRAIN-U").worksheet("Ejercicios")
         todos_los_valores = sheet.get_all_values()
         if len(todos_los_valores) < 2:
             return [] # Devuelve lista vacía si no hay ejercicios
@@ -190,7 +190,7 @@ def cargar_lista_ejercicios(_client):
 def cargar_historial_detallado(_client, username):
     """Carga el historial de ejercicios detallado."""
     try:
-        sheet = client.open("AI.TRAIN-U").worksheet("Registro_Detallado")
+        sheet = _client.open("AI.TRAIN-U").worksheet("Registro_Detallado")
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
         if df.empty:
