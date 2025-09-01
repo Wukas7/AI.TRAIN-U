@@ -138,6 +138,33 @@ def guardar_entreno_detallado(client, username, fecha, df_entreno):
         st.error(f"Error al guardar el entreno detallado: {e}")
         return False
 
+
+def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_valor):
+    """Encuentra una variable en el perfil de un usuario y actualiza su valor."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Perfil")
+        
+        # Encontrar todas las celdas que contienen el username en la columna A
+        celdas_usuario = sheet.findall(username, in_column=1)
+        
+        # Buscar la fila correcta que contiene la variable que queremos cambiar
+        for celda in celdas_usuario:
+            variable_en_fila = sheet.cell(celda.row, 2).value # Columna B (Variable)
+            if variable_en_fila == variable_a_actualizar:
+                # Hemos encontrado la fila. Actualizamos la columna C (Valor)
+                sheet.update_cell(celda.row, 3, str(nuevo_valor))
+                return True # Indicamos que la actualización fue exitosa
+        
+        # Si salimos del bucle, la variable no existe, así que la creamos
+        st.warning(f"La variable '{variable_a_actualizar}' no existía en el perfil. Se ha añadido.")
+        sheet.append_row([username, variable_a_actualizar, str(nuevo_valor)])
+        return True
+        
+    except Exception as e:
+        st.warning(f"No se pudo actualizar el perfil '{variable_a_actualizar}': {e}")
+        return False
+
+
 def cargar_lista_ejercicios(client):
     """Carga la lista de todos los ejercicios disponibles."""
     try:
