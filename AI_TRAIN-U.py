@@ -124,9 +124,9 @@ def main():
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
                 df_entreno_vacio = pd.DataFrame(
                     [
-                        {"Ejercicio": None, "Serie": 1, "Repeticiones": None, "Peso_kg": None},
-                        {"Ejercicio": None, "Serie": 2, "Repeticiones": None, "Peso_kg": None},
-                        {"Ejercicio": None, "Serie": 3, "Repeticiones": None, "Peso_kg": None},
+                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
+                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
+                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
                     ]
                 )
                 entreno_registrado_df = st.data_editor(
@@ -141,7 +141,7 @@ def main():
                         ),
                         "Serie": st.column_config.NumberColumn(
                             "Serie Nº",
-                            help="El número de la serie (1, 2, 3...)",
+                            help="El número de series realizadas (3,4,5...)",
                             min_value=1,
                             step=1,
                             required=True
@@ -155,7 +155,7 @@ def main():
                         ),
                         "Peso_kg": st.column_config.NumberColumn(
                             "Peso (kg)",
-                            help="El peso levantado en kilogramos",
+                            help="El peso levantado en kg",
                             min_value=0.0,
                             format="%.2f kg",
                             required=True
@@ -280,6 +280,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
