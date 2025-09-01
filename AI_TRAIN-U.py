@@ -120,101 +120,73 @@ def main():
                     
             st.header(f"✍️ Registro del Día")
 
-            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado (ejercicios, series, peso)", value=True)
-                    
-            with st.form("registro_diario_form"):
-                fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
+                    usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado (ejercicios, series, peso)", value=True)
                 
-                if usar_entreno_detallado:
-                    st.subheader("🏋️ Registra tu Entrenamiento Detallado")
-                    
-                    # --- FILTROS DINÁMICOS ---
-                    # Creamos columnas para organizar los filtros
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        # Creamos la lista de opciones para el filtro, añadiendo un "-" al principio
-                        opciones_grupo = ["-"] + sorted(df_ejercicios['Grupo_Muscular'].unique())
-                        grupo_sel = st.selectbox("1. Filtra por Grupo Muscular:", opciones_grupo)
-                    with col2:
-                        opciones_equip = ["-"] + sorted(df_ejercicios['Equipamiento'].unique())
-                        equip_sel = st.selectbox("2. Filtra por Equipamiento:", opciones_equip)
-
-                    # Filtramos el DataFrame de ejercicios según lo que el usuario ha seleccionado
-                    df_filtrado = df_ejercicios.copy()
-                    if grupo_sel != "-":
-                        df_filtrado = df_filtrado[df_filtrado['Grupo_Muscular'] == grupo_sel]
-                    if equip_sel != "-":
-                        df_filtrado = df_filtrado[df_filtrado['Equipamiento'] == equip_sel]
-        
-                    # La lista de ejercicios para el desplegable ahora está filtrada
-                    lista_ejercicios_filtrada = sorted(df_filtrado['Nombre_Ejercicio'].unique())
-                    # ------------------------------------
-
-                    df_entreno_vacio = pd.DataFrame(
-                        [{"Ejercicio": None, "Serie": 1, "Repeticiones": None, "Peso_kg": None}]
-                    )
-        
-                    # --- (MODIFICADO) El data_editor ahora usa la lista filtrada ---
-                    entreno_registrado_df = st.data_editor(
-                        df_entreno_vacio, num_rows="dynamic",
-                        column_config={
-                            # ¡La magia está aquí! 'options' ahora es la lista filtrada.
-                            "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios_filtrada, required=True),
-                            "Serie": st.column_config.NumberColumn("Nº Serie", min_value=1, step=1, required=True),
-                            "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
-                            "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
-                        }
-                    )
-                    # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
-                    entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
-                else:
-                    st.subheader("🏃 Registra tu Entrenamiento Simple")
-                    entreno_simple = st.text_area("Describe tu entrenamiento (ej: 'Salí a correr 45 min a ritmo suave')")
-
-                
-                sensaciones = st.text_area("¿Cómo te sientes?")
-                calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
-                proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
-                descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
-                submitted = st.form_submit_button("✅ Generar nuevo plan")
-
-            historial_detallado_df = cargar_historial_detallado(gspread_client, username)
+                    with st.form("registro_diario_form"):
+                        fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
             
-            if submitted:
-                if not plan_semana_actual:
-                    st.error("Primero debes generar un plan semanal antes de registrar tu día.")
-                else:
-                    with st.spinner("Analizando tu día y preparando el nuevo plan..."):
-                        resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
-                        # Si se usó la tabla, creamos el resumen a partir de ella
-                            resumen_tabla = "\n".join(
-                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
-                                for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
+                            st.subheader("🏋️ Registra tu Entrenamiento Detallado")
+                            df_entreno_vacio = pd.DataFrame(
+                                [{"Ejercicio": None, "series": 1, "Repeticiones": None, "Peso_kg": None}]
                             )
-                            # Combinamos el resumen de la tabla con las notas adicionales
-                            resumen_entreno_hoy = resumen_tabla + ("\nNotas: " + entreno_simple if entreno_simple else "")
-                
-                            fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
-                            guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+                            entreno_registrado_df = st.data_editor(
+                                df_entreno_vacio, num_rows="dynamic",
+                                column_config={
+                                    "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
+                                    "series": st.column_config.NumberColumn("Nº series", min_value=1, step=1, required=True),
+                                    "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
+                                    "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
+                                }
+                            )
+                # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
+                            entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
                         else:
-                            # Si se usó el texto simple, ese es nuestro resumen
-                            resumen_entreno_hoy = entreno_simple
+                            st.subheader("🏃 Registra tu Entrenamiento Simple")
+                            entreno_simple = st.text_area("Describe tu entrenamiento (ej: 'Salí a correr 45 min a ritmo suave')")
 
-                        
-                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
-
-                        # Preparamos un resumen del historial detallado para la IA
-                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
             
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
+                        sensaciones = st.text_area("¿Cómo te sientes?")
+                        calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
+                        proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
+                        descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
+                        submitted = st.form_submit_button("✅ Generar nuevo plan")
 
-                        if plan_generado:
-                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                            plan_diario_detallado = partes_plan[0].strip()
-                            fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, plan_diario_detallado]                                
-                            guardar_registro(gspread_client, username, nueva_fila_datos)
+                    historial_detallado_df = cargar_historial_detallado(gspread_client, username)
+        
+                    if submitted:
+                        if not plan_semana_actual:
+                            st.error("Primero debes generar un plan semanal antes de registrar tu día.")
+                        else:
+                            with st.spinner("Analizando tu día y preparando el nuevo plan..."):
+                                resumen_entreno_hoy = ""
+                                if usar_entreno_detallado:
+                                # Si se usó la tabla, creamos el resumen a partir de ella
+                                    resumen_entreno_hoy = "\n".join(
+                                        f"- {row['Ejercicio']}: {row['series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                                        for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
+                                    )
+                                    # Guardamos los datos detallados
+                                    fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
+                                    guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+                                else:
+                                    # Si se usó el texto simple, ese es nuestro resumen
+                                    resumen_entreno_hoy = entreno_simple
+
+                    
+                                datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
+
+                                # Preparamos un resumen del historial detallado para la IA
+                                historial_detallado_texto = historial_detallado_df.tail(20).to_string()
+        
+                                plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
+
+                                if plan_generado:
+                                    partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                                    plan_diario_detallado = partes_plan[0].strip()
+                                    fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
+                                    nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, plan_diario_detallado]                                
+                                    guardar_registro(gspread_client, username, nueva_fila_datos)
 
                                            
                             #RACHA DE DIAS
@@ -287,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
