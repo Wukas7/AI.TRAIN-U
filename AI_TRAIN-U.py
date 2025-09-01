@@ -222,7 +222,7 @@ def main():
                                 for formato in formatos_posibles:
                                     try:
                                         ultimo_dia_obj = datetime.strptime(ultimo_dia_str, formato).date()
-                                            break # Si funciona, salimos del bucle
+                                        break # Si funciona, salimos del bucle
                                     except ValueError:
                                         continue
 
@@ -279,6 +279,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
