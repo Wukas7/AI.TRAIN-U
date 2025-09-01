@@ -130,7 +130,7 @@ def main():
                     df_entreno_vacio = pd.DataFrame(
                         [{"Ejercicio": None, "series": 1, "Repeticiones": None, "Peso_kg": None}]
                     )
-                        entreno_registrado_df = st.data_editor(
+                    entreno_registrado_df = st.data_editor(
                         df_entreno_vacio, num_rows="dynamic",
                         column_config={
                             "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
@@ -139,7 +139,7 @@ def main():
                             "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
                         }
                     )
-        # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
+                # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
                     entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
                 else:
                     st.subheader("🏃 Registra tu Entrenamiento Simple")
@@ -258,6 +258,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
