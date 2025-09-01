@@ -128,13 +128,13 @@ def main():
                 if usar_entreno_detallado:
                     st.subheader("🏋️ Registra tu Entrenamiento Detallado")
                     df_entreno_vacio = pd.DataFrame(
-                        [{"Ejercicio": None, "series": 1, "Repeticiones": None, "Peso_kg": None}]
+                        [{"Ejercicio": None, "Series": 1, "Repeticiones": None, "Peso_kg": None}]
                     )
                     entreno_registrado_df = st.data_editor(
                         df_entreno_vacio, num_rows="dynamic",
                         column_config={
                             "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
-                            "series": st.column_config.NumberColumn("Nº series", min_value=1, step=1, required=True),
+                            "Series": st.column_config.NumberColumn("Nº series", min_value=1, step=1, required=True),
                             "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
                             "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
                         }
@@ -163,7 +163,7 @@ def main():
                         if usar_entreno_detallado:
                         # Si se usó la tabla, creamos el resumen a partir de ella
                             resumen_entreno_hoy = "\n".join(
-                                f"- {row['Ejercicio']}: {row['series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                                f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
                                 for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
                             )
                             # Guardamos los datos detallados
@@ -258,6 +258,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
