@@ -46,8 +46,6 @@ def main():
         # --- APLICACIÓN PRINCIPAL (SI EL LOGIN ES CORRECTO) ---
         username = st.session_state['username']
 
-        lista_ejercicios = cargar_lista_ejercicios(gspread_client)
-
         st.sidebar.success(f"Conectado como: **{username}**")
         if st.sidebar.button("Logout"):
             del st.session_state['logged_in']
@@ -65,6 +63,8 @@ def main():
         historial_df = cargar_historial(gspread_client, username)
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
         historial_detallado_df = cargar_historial_detallado(gspread_client, username)
+        lista_ejercicios = cargar_lista_ejercicios(gspread_client)
+
         
         # Lógica del Pop-up y Celebración de Racha
         racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
@@ -256,6 +256,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
