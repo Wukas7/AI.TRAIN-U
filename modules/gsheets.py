@@ -124,7 +124,7 @@ def guardar_entreno_detallado(client, username, fecha, df_entreno):
                     username,
                     fecha,
                     row["Ejercicio"],
-                    row["Serie"],
+                    row["Series"],
                     row["Repeticiones"],
                     row["Peso_kg"]
                 ])
