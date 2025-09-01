@@ -5,7 +5,8 @@ import gspread
 
 # --- 2. FUNCIONES DE LA APLICACIÓN (GOOGLE SHEETS & GEMINI) ---
 # --- Funciones de Carga de Datos (Tu código original + la nueva para el plan semanal) ---
-def cargar_perfil(client, username):
+@st.cache_data(ttl=60)
+def cargar_perfil(_client, username):
     try:
         spreadsheet = client.open("AI.TRAIN-U")
         sheet_perfil = spreadsheet.worksheet("Perfil")
@@ -19,7 +20,8 @@ def cargar_perfil(client, username):
     except Exception as e:
         return {"Error": f"Ocurrió un error al cargar el perfil: {e}"}
 
-def cargar_historial(client, username):
+@st.cache_data(ttl=60)
+def cargar_historial(_client, username):
     try:
         spreadsheet = client.open("AI.TRAIN-U")
         sheet_registro = spreadsheet.worksheet("Registro_Diario")
@@ -29,8 +31,9 @@ def cargar_historial(client, username):
         return df_usuario
     except Exception:
         return pd.DataFrame()
-
-def cargar_plan_semana(client, username):
+        
+@st.cache_data(ttl=60)
+def cargar_plan_semana(_client, username):
     """(NUEVA) Carga el plan de la semana actual para un usuario."""
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
@@ -164,8 +167,8 @@ def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_val
         st.warning(f"No se pudo actualizar el perfil '{variable_a_actualizar}': {e}")
         return False
 
-
-def cargar_lista_ejercicios(client):
+@st.cache_data(ttl=60)
+def cargar_lista_ejercicios(_client):
     """Carga la lista de todos los ejercicios disponibles."""
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Ejercicios")
@@ -183,7 +186,8 @@ def cargar_lista_ejercicios(client):
 
 
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
-def cargar_historial_detallado(client, username):
+@st.cache_data(ttl=60)
+def cargar_historial_detallado(_client, username):
     """Carga el historial de ejercicios detallado."""
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Registro_Detallado")
