@@ -12,7 +12,8 @@ from modules.auth import create_usertable, login_user, make_hashes
 from modules.gsheets import (
     cargar_perfil, cargar_historial, cargar_plan_semana,
     guardar_registro, guardar_plan_semana_nuevo, actualizar_plan_completo,
-    cargar_historial_detallado, guardar_entreno_detallado, cargar_lista_ejercicios
+    cargar_historial_detallado, guardar_entreno_detallado, cargar_lista_ejercicios,
+    actualizar_perfil_usuario
 )
 from modules.aibrain import generar_plan_semana, generar_plan_diario
 
@@ -279,6 +280,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
