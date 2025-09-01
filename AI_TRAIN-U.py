@@ -96,6 +96,7 @@ def main():
                     if plan_semana_generado_str:
                         guardar_plan_semana_nuevo(gspread_client, username, plan_semana_generado_str)
                         st.success("¡Plan semanal generado con éxito! Ahora ya puedes registrar tu primer día.")
+                        cargar_plan_semana.clear()
                         time.sleep(3)
                         st.rerun()
         else:
@@ -258,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
