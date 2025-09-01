@@ -230,8 +230,8 @@ def main():
                                 
                             plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
                             
-                            if entreno.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in entreno.strip().lower():
-                                nuevo_estado = "✅ Realizado"
+                            if resumen_entreno_hoy and (resumen_entreno_hoy.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in resumen_entreno_hoy.strip().lower()):
+                               nuevo_estado = "✅ Realizado"
                             else:
                                 nuevo_estado = "🔄 Modificado"
                                     
@@ -259,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
