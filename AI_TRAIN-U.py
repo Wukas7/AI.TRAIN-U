@@ -119,49 +119,32 @@ def main():
             st.divider()
                     
             st.header(f"✍️ Registro del Día")
+
+            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado (ejercicios, series, peso)", value=True)
                     
             with st.form("registro_diario_form"):
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
-                df_entreno_vacio = pd.DataFrame(
-                    [
-                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
-                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
-                        {"Ejercicio": None, "Serie": 4, "Repeticiones": None, "Peso_kg": None},
-                    ]
-                )
-                entreno_registrado_df = st.data_editor(
-                    df_entreno_vacio,
-                    num_rows="dynamic", # Permite añadir/borrar filas
-                    column_config={
-                        "Ejercicio": st.column_config.SelectboxColumn(
-                            "Ejercicio",
-                            help="Selecciona el ejercicio de la lista",
-                            options=lista_ejercicios,
-                            required=True
-                        ),
-                        "Serie": st.column_config.NumberColumn(
-                            "Serie Nº",
-                            help="El número de series realizadas (3,4,5...)",
-                            min_value=1,
-                            step=1,
-                            required=True
-                        ),
-                        "Repeticiones": st.column_config.NumberColumn(
-                            "Repeticiones",
-                            help="Número de repeticiones completadas",
-                            min_value=0,
-                            step=1,
-                            required=True
-                        ),
-                        "Peso_kg": st.column_config.NumberColumn(
-                            "Peso (kg)",
-                            help="El peso levantado en kg",
-                            min_value=0.0,
-                            format="%.2f kg",
-                            required=True
-                        ),
-                    }
-                )
+                
+                if usar_entreno_detallado:
+                    st.subheader("🏋️ Registra tu Entrenamiento Detallado")
+                    df_entreno_vacio = pd.DataFrame(
+                        [{"Ejercicio": None, "Serie": 1, "Repeticiones": None, "Peso_kg": None}]
+                    )
+                    entreno_registrado_df = st.data_editor(
+                        df_entreno_vacio, num_rows="dynamic",
+                        column_config={
+                            "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
+                            "Serie": st.column_config.NumberColumn("Serie Nº", min_value=1, step=1, required=True),
+                            "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
+                            "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
+                        }
+                    )
+        # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
+                    entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
+                else:
+                    st.subheader("🏃 Registra tu Entrenamiento Simple")
+                    entreno_simple = st.text_area("Describe tu entrenamiento (ej: 'Salí a correr 45 min a ritmo suave')")
+
                 
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
@@ -279,6 +262,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
