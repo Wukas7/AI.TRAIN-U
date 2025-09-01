@@ -134,7 +134,7 @@ def main():
                         df_entreno_vacio, num_rows="dynamic",
                         column_config={
                             "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
-                            "series": st.column_config.NumberColumn("series Nº", min_value=1, step=1, required=True),
+                            "series": st.column_config.NumberColumn("Nº series", min_value=1, step=1, required=True),
                             "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
                             "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
                         }
@@ -259,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
