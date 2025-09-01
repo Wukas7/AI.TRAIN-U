@@ -146,7 +146,6 @@ def main():
                     entreno_simple = st.text_area("Describe tu entrenamiento (ej: 'Salí a correr 45 min a ritmo suave')")
 
                 
-                entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
@@ -160,6 +159,21 @@ def main():
                     st.error("Primero debes generar un plan semanal antes de registrar tu día.")
                 else:
                     with st.spinner("Analizando tu día y preparando el nuevo plan..."):
+                        resumen_entreno_hoy = ""
+                        if usar_entreno_detallado:
+                        # Si se usó la tabla, creamos el resumen a partir de ella
+                            resumen_entreno_hoy = "\n".join(
+                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                                for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
+                            )
+                            # Guardamos los datos detallados
+                            fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
+                            guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+                        else:
+                            # Si se usó el texto simple, ese es nuestro resumen
+                            resumen_entreno_hoy = entreno_simple
+
+                        
                         datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
                         # Guardamos el entreno detallado que el usuario introdujo en la tabla
                         fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
@@ -184,14 +198,10 @@ def main():
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
                             plan_diario_detallado = partes_plan[0].strip()
                             fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, entreno, sensaciones, descanso, plan_diario_detallado]                                
+                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, plan_diario_detallado]                                
                             guardar_registro(gspread_client, username, nueva_fila_datos)
 
-                            resumen_entreno_hoy = "\n".join(
-                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
-                                for index, row in entreno_registrado_df.iterrows() if row['Ejercicio']
-                            )
-                    
+                                           
                             #RACHA DE DIAS
                             racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
@@ -262,6 +272,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
