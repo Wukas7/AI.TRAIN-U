@@ -123,27 +123,44 @@ def main():
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
                 df_entreno_vacio = pd.DataFrame(
                     [
-                        {"Ejercicio": "Press Banca", "Serie": 4, "Repeticiones": 8, "Peso_kg": 80.0},
-                        {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
-                        {"Ejercicio": "", "Serie": "", "Repeticiones": "", "Peso_kg": ""},
+                        {"Ejercicio": None, "Serie": 1, "Repeticiones": None, "Peso_kg": None},
+                        {"Ejercicio": None, "Serie": 2, "Repeticiones": None, "Peso_kg": None},
+                        {"Ejercicio": None, "Serie": 3, "Repeticiones": None, "Peso_kg": None},
                     ]
                 )
                 entreno_registrado_df = st.data_editor(
                     df_entreno_vacio,
                     num_rows="dynamic", # Permite añadir/borrar filas
                     column_config={
-                    # --- (NUEVO) LA COLUMNA EJERCICIO ES AHORA UN DESPLEGABLE ---
-                    "Ejercicio": st.column_config.SelectboxColumn(
-                        "Ejercicio",
-                        help="Selecciona el ejercicio de la lista",
-                        options=lista_ejercicios, # <-- Usamos la lista que cargamos
-                        required=True
-                    ),
-                    "Peso_kg": st.column_config.NumberColumn(
-                        "Peso (kg)", help="El peso levantado en kilogramos", min_value=0, format="%.2f kg",
-                    ),
-                }
-            )
+                        "Ejercicio": st.column_config.SelectboxColumn(
+                            "Ejercicio",
+                            help="Selecciona el ejercicio de la lista",
+                            options=lista_ejercicios,
+                            required=True
+                        ),
+                        "Serie": st.column_config.NumberColumn(
+                            "Serie Nº",
+                            help="El número de la serie (1, 2, 3...)",
+                            min_value=1,
+                            step=1,
+                            required=True
+                        ),
+                        "Repeticiones": st.column_config.NumberColumn(
+                            "Repeticiones",
+                            help="Número de repeticiones completadas",
+                            min_value=0,
+                            step=1,
+                            required=True
+                        ),
+                        "Peso_kg": st.column_config.NumberColumn(
+                            "Peso (kg)",
+                            help="El peso levantado en kilogramos",
+                            min_value=0.0,
+                            format="%.2f kg",
+                            required=True
+                        ),
+                    }
+                )
                 
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
@@ -256,6 +273,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
