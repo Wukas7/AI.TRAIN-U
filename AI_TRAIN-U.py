@@ -13,7 +13,7 @@ from modules.gsheets import (
     cargar_perfil, cargar_historial, cargar_plan_semana,
     guardar_registro, guardar_plan_semana_nuevo, actualizar_plan_completo,
     cargar_historial_detallado, guardar_entreno_detallado, cargar_lista_ejercicios,
-    actualizar_perfil_usuario
+    actualizar_perfil_usuario, cargar_df_ejercicios
 )
 from modules.aibrain import generar_plan_semana, generar_plan_diario
 
@@ -65,7 +65,7 @@ def main():
         plan_semana_actual = cargar_plan_semana(gspread_client, username)
         historial_detallado_df = cargar_historial_detallado(gspread_client, username)
         lista_ejercicios = cargar_lista_ejercicios(gspread_client)
-
+        df_ejercicios = cargar_df_ejercicios(gspread_client)
         
         # Lógica del Pop-up y Celebración de Racha
         racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
@@ -127,19 +127,45 @@ def main():
                 
                 if usar_entreno_detallado:
                     st.subheader("🏋️ Registra tu Entrenamiento Detallado")
+                    
+                    # --- FILTROS DINÁMICOS ---
+                    # Creamos columnas para organizar los filtros
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        # Creamos la lista de opciones para el filtro, añadiendo un "-" al principio
+                        opciones_grupo = ["-"] + sorted(df_ejercicios['Grupo_Muscular'].unique())
+                        grupo_sel = st.selectbox("1. Filtra por Grupo Muscular:", opciones_grupo)
+                    with col2:
+                        opciones_equip = ["-"] + sorted(df_ejercicios['Equipamiento'].unique())
+                        equip_sel = st.selectbox("2. Filtra por Equipamiento:", opciones_equip)
+
+                    # Filtramos el DataFrame de ejercicios según lo que el usuario ha seleccionado
+                    df_filtrado = df_ejercicios.copy()
+                    if grupo_sel != "-":
+                        df_filtrado = df_filtrado[df_filtrado['Grupo_Muscular'] == grupo_sel]
+                    if equip_sel != "-":
+                        df_filtrado = df_filtrado[df_filtrado['Equipamiento'] == equip_sel]
+        
+                    # La lista de ejercicios para el desplegable ahora está filtrada
+                    lista_ejercicios_filtrada = sorted(df_filtrado['Nombre_Ejercicio'].unique())
+                    # ------------------------------------
+
                     df_entreno_vacio = pd.DataFrame(
-                        [{"Ejercicio": None, "series": 1, "Repeticiones": None, "Peso_kg": None}]
+                        [{"Ejercicio": None, "Serie": 1, "Repeticiones": None, "Peso_kg": None}]
                     )
+        
+                    # --- (MODIFICADO) El data_editor ahora usa la lista filtrada ---
                     entreno_registrado_df = st.data_editor(
                         df_entreno_vacio, num_rows="dynamic",
                         column_config={
-                            "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios, required=True),
-                            "series": st.column_config.NumberColumn("Nº series", min_value=1, step=1, required=True),
+                            # ¡La magia está aquí! 'options' ahora es la lista filtrada.
+                            "Ejercicio": st.column_config.SelectboxColumn("Ejercicio", options=lista_ejercicios_filtrada, required=True),
+                            "Serie": st.column_config.NumberColumn("Nº Serie", min_value=1, step=1, required=True),
                             "Repeticiones": st.column_config.NumberColumn("Repeticiones", min_value=0, step=1, required=True),
                             "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
                         }
                     )
-        # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
+                    # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
                     entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
                 else:
                     st.subheader("🏃 Registra tu Entrenamiento Simple")
@@ -162,11 +188,13 @@ def main():
                         resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
                         # Si se usó la tabla, creamos el resumen a partir de ella
-                            resumen_entreno_hoy = "\n".join(
-                                f"- {row['Ejercicio']}: {row['series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                            resumen_tabla = "\n".join(
+                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
                                 for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
                             )
-                            # Guardamos los datos detallados
+                            # Combinamos el resumen de la tabla con las notas adicionales
+                            resumen_entreno_hoy = resumen_tabla + ("\nNotas: " + entreno_simple if entreno_simple else "")
+                
                             fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
                             guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
                         else:
@@ -259,6 +287,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
