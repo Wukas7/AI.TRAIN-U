@@ -138,6 +138,17 @@ def guardar_entreno_detallado(client, username, fecha, df_entreno):
         st.error(f"Error al guardar el entreno detallado: {e}")
         return False
 
+def cargar_lista_ejercicios(client):
+    """Carga la lista de todos los ejercicios disponibles."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Ejercicios")
+        # get_col(1) coge todos los valores de la primera columna
+        lista_ejercicios = sheet.get_col(1, include_empty=False)[1:] # [1:] para saltar la cabecera
+        return lista_ejercicios
+    except:
+        # Si falla, devuelve una lista de ejemplo para que la app no se rompa
+        return ["Press Banca", "Sentadilla", "Peso Muerto"]
+
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
 def cargar_historial_detallado(client, username):
     """Carga el historial de ejercicios detallado."""
