@@ -174,25 +174,12 @@ def main():
                             resumen_entreno_hoy = entreno_simple
 
                         
-                        datos_de_hoy = {"entreno": entreno, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
-                        # Guardamos el entreno detallado que el usuario introdujo en la tabla
-                        fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
-                        guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
 
                         # Preparamos un resumen del historial detallado para la IA
-                        historial_detallado_texto = historial_detallado_df.tail(20).to_string() # Le pasamos las últimas 20 series
-
-                        # Llamamos a la IA con el nuevo historial
+                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
+            
                         plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
-                        historial_texto = historial_df.tail(3).to_string()
-
-                        plan_generado = generar_plan_diario(
-                        perfil_usuario, 
-                        historial_detallado_texto, # <--- Le pasamos la variable que acabamos de crear
-                        datos_de_hoy, 
-                        plan_semana_actual, 
-                        fecha_registro
-                    )
 
                         if plan_generado:
                             partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
@@ -248,7 +235,7 @@ def main():
                             else:
                                 nuevo_estado = "🔄 Modificado"
                                     
-                            actualizar_plan_completo(gspread_client, username, dia_a_actualizar, entreno, nuevo_estado)
+                            actualizar_plan_completo(gspread_client, username, dia_a_actualizar, resumen_entreno_hoy, nuevo_estado)
 
                             st.session_state['plan_recien_generado'] = plan_diario_detallado
                             if len(partes_plan) > 1:
@@ -272,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
