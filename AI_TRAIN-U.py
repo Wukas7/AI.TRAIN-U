@@ -217,15 +217,14 @@ def main():
                             fecha_de_hoy_obj = fecha_registro
 
                             if ultimo_dia_str and ultimo_dia_str.strip() != "":
-                                try:
-                            # Intentamos convertir el texto del Sheet a un objeto 'date'
-                            # Probamos el formato esperado primero.
-                                    ultimo_dia_obj = datetime.strptime(ultimo_dia_str, '%Y-%m-%d').date()
-                                except ValueError:
-                            # Si falla, podría ser otro formato o un texto inválido.
-                            # En este caso, lo más seguro es resetear la racha.
-                                    ultimo_dia_obj = None # Marcamos como inválido
-                                    st.warning("Se encontró un formato de fecha inesperado en el perfil. La racha se ha reiniciado.")
+                                formatos_posibles = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'] # AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA
+                                ultimo_dia_obj = None
+                                for formato in formatos_posibles:
+                                    try:
+                                        ultimo_dia_obj = datetime.strptime(ultimo_dia_str, formato).date()
+                                            break # Si funciona, salimos del bucle
+                                    except ValueError:
+                                        continue
 
                                 if ultimo_dia_obj:
                                     diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
@@ -280,6 +279,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
