@@ -166,38 +166,21 @@ def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_val
 
 
 def cargar_lista_ejercicios(client):
-    """Carga la lista de todos los ejercicios disponibles de forma robusta y con depuración."""
+    """Carga la lista de todos los ejercicios disponibles."""
     try:
-        st.info("Intentando cargar la lista de ejercicios desde Google Sheets...") # Mensaje de depuración
-        
-        spreadsheet = client.open("AI.TRAIN-U")
-        sheet = spreadsheet.worksheet("Ejercicios")
-        
-        # Usamos get_all_values para obtener los datos en bruto
+        sheet = client.open("AI.TRAIN-U").worksheet("Ejercicios")
         todos_los_valores = sheet.get_all_values()
-        
-        # Comprobación 1: ¿La hoja tiene contenido?
         if len(todos_los_valores) < 2:
-            st.error("Error Crítico: La pestaña 'Ejercicios' está vacía o solo tiene cabecera. Por favor, añade ejercicios.")
-            return ["Error: Hoja vacía"]
-
-        # Creamos la lista a partir de la PRIMERA columna (índice 0), saltando la cabecera (índice 0)
+            return [] # Devuelve lista vacía si no hay ejercicios
         lista_ejercicios = [fila[0] for fila in todos_los_valores[1:] if fila and fila[0].strip() != ""]
-        
-        # Comprobación 2: ¿Hemos encontrado ejercicios?
-        if not lista_ejercicios:
-            st.error("Error Crítico: No se encontraron ejercicios en la primera columna de la pestaña 'Ejercicios'.")
-            return ["Error: Columna vacía"]
-
-        st.success(f"¡Lista de {len(lista_ejercicios)} ejercicios cargada con éxito!") # Mensaje de éxito
-        return sorted(lista_ejercicios) # Devolvemos la lista ordenada alfabéticamente
-
+        return sorted(lista_ejercicios)
     except gspread.exceptions.WorksheetNotFound:
-        st.error("Error Crítico: No se encontró la pestaña llamada 'Ejercicios' en tu Google Sheet. Por favor, créala y añade una columna 'Nombre_Ejercicio'.")
-        return ["Error: Pestaña no encontrada"]
+        st.error("Error Crítico: No se encontró la pestaña 'Ejercicios' en tu Google Sheet.")
+        return []
     except Exception as e:
-        st.error(f"Ocurrió un error inesperado al cargar la lista de ejercicios: {e}")
-        return ["Error: Fallo al cargar"]
+        st.error(f"Error inesperado al cargar la lista de ejercicios: {e}")
+        return []
+
 
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
 def cargar_historial_detallado(client, username):
