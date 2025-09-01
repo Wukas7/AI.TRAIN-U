@@ -75,7 +75,7 @@ def main():
             st.balloons()
             del st.session_state['celebrar_racha']
         elif racha_actual > 0:
-            st.toast(f"🔥 ¡Llevas {racha_actual} día(s) de racha! ¡A por más!", icon="🔥")
+            st.toast(f"¡Llevas {racha_actual} día(s) de racha! ¡A por más!", icon="🔥")
         
         if 'plan_recien_generado' in st.session_state:
             st.header("🚀 Tu Plan para Mañana")
@@ -259,6 +259,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
