@@ -12,7 +12,7 @@ from modules.auth import create_usertable, login_user, make_hashes
 from modules.gsheets import (
     cargar_perfil, cargar_historial, cargar_plan_semana,
     guardar_registro, guardar_plan_semana_nuevo, actualizar_plan_completo,
-    cargar_historial_detallado, guardar_entreno_detallado
+    cargar_historial_detallado, guardar_entreno_detallado, cargar_lista_ejercicios
 )
 from modules.aibrain import generar_plan_semana, generar_plan_diario
 
@@ -45,6 +45,8 @@ def main():
     else:
         # --- APLICACIÓN PRINCIPAL (SI EL LOGIN ES CORRECTO) ---
         username = st.session_state['username']
+
+        lista_ejercicios = cargar_lista_ejercicios(gspread_client)
 
         st.sidebar.success(f"Conectado como: **{username}**")
         if st.sidebar.button("Logout"):
@@ -129,15 +131,19 @@ def main():
                 entreno_registrado_df = st.data_editor(
                     df_entreno_vacio,
                     num_rows="dynamic", # Permite añadir/borrar filas
-                    column_config={ # (Opcional) Configuración para mejorar la experiencia
-                        "Peso_kg": st.column_config.NumberColumn(
-                            "Peso (kg)",
-                            help="El peso levantado en kilogramos",
-                            min_value=0,
-                            format="%.2f kg",
-                        ),
-                    }
-                )
+                    column_config={
+                    # --- (NUEVO) LA COLUMNA EJERCICIO ES AHORA UN DESPLEGABLE ---
+                    "Ejercicio": st.column_config.SelectboxColumn(
+                        "Ejercicio",
+                        help="Selecciona el ejercicio de la lista",
+                        options=lista_ejercicios, # <-- Usamos la lista que cargamos
+                        required=True
+                    ),
+                    "Peso_kg": st.column_config.NumberColumn(
+                        "Peso (kg)", help="El peso levantado en kilogramos", min_value=0, format="%.2f kg",
+                    ),
+                }
+            )
                 
                 entreno = st.text_area("¿Qué entrenamiento has hecho?")
                 sensaciones = st.text_area("¿Cómo te sientes?")
@@ -250,6 +256,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
