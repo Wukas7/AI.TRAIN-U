@@ -172,17 +172,13 @@ def cargar_lista_ejercicios(_client):
     """Carga la lista de todos los ejercicios disponibles."""
     try:
         sheet = _client.open("AI.TRAIN-U").worksheet("Ejercicios")
-        todos_los_valores = sheet.get_all_values()
-        if len(todos_los_valores) < 2:
-            return [] # Devuelve lista vacía si no hay ejercicios
-        lista_ejercicios = [fila[0] for fila in todos_los_valores[1:] if fila and fila[0].strip() != ""]
-        return sorted(lista_ejercicios)
-    except gspread.exceptions.WorksheetNotFound:
-        st.error("Error Crítico: No se encontró la pestaña 'Ejercicios' en tu Google Sheet.")
-        return []
-    except Exception as e:
-        st.error(f"Error inesperado al cargar la lista de ejercicios: {e}")
-        return []
+        data = sheet.get_all_records()
+        df = pd.DataFrame(data)
+        # Devolvemos solo la lista de la columna 'Nombre_Ejercicio'
+        return sorted(df['Nombre_Ejercicio'].tolist())
+    except Exception:
+        # Lista de emergencia por si algo falla
+        return ["Press Banca", "Sentadilla", "Peso Muerto"]
 
 
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
@@ -198,3 +194,19 @@ def cargar_historial_detallado(_client, username):
         return df[df['UserID'] == username]
     except Exception:
         return pd.DataFrame()
+        
+@st.cache_data(ttl=60)
+def cargar_df_ejercicios(_client):
+    """Carga la tabla completa de ejercicios como un DataFrame de Pandas."""
+    try:
+        sheet = _client.open("AI.TRAIN-U").worksheet("Ejercicios")
+        data = sheet.get_all_records()
+        return pd.DataFrame(data)
+    except:
+        # DataFrame de emergencia si algo falla
+        return pd.DataFrame({
+            "Nombre_Ejercicio": ["Press Banca", "Sentadilla"],
+            "Grupo_Muscular": ["Pecho", "Pierna"],
+            "Equipamiento": ["Barra", "Barra"]
+        })
+
