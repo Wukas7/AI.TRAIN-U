@@ -213,31 +213,37 @@ def main():
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
 
                             # Convertimos la fecha de hoy y la última fecha a objetos 'date' para poder compararlas
-                            fecha_de_hoy_obj = fecha_registro.date() if hasattr(fecha_registro, 'date') else fecha_registro
+                            fecha_de_hoy_obj = fecha_registro
 
-                            if ultimo_dia_str:
-                                ultimo_dia_obj = datetime.strptime(ultimo_dia_str, '%Y-%m-%d').date()
-                                diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
+                            if ultimo_dia_str and ultimo_dia_str.strip() != "":
+                                try:
+                            # Intentamos convertir el texto del Sheet a un objeto 'date'
+                            # Probamos el formato esperado primero.
+                                    ultimo_dia_obj = datetime.strptime(ultimo_dia_str, '%Y-%m-%d').date()
+                                except ValueError:
+                            # Si falla, podría ser otro formato o un texto inválido.
+                            # En este caso, lo más seguro es resetear la racha.
+                                    ultimo_dia_obj = None # Marcamos como inválido
+                                    st.warning("Se encontró un formato de fecha inesperado en el perfil. La racha se ha reiniciado.")
 
-                                if diferencia_dias == 1:
-                                    # La racha continúa, la incrementamos
-                                    racha_actual += 1
-                                elif diferencia_dias > 1:
-                                    # Se rompió la racha, la reseteamos a 1
-                                    racha_actual = 1
-                                # Si diferencia_dias es 0 o menos, no hacemos nada (es el mismo día o un día anterior ya registrado)
+                                if ultimo_dia_obj:
+                                    diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
+
+                                    if diferencia_dias == 1:
+                                        racha_actual += 1
+                                    elif diferencia_dias > 1:
+                                        racha_actual = 1
+                                    # Si es 0 o menos, no hacemos nada con la racha
                             else:
-                                # Es el primer registro, la racha empieza en 1
+                            # Es el primer registro válido
                                 racha_actual = 1
         
                             # Guardamos los nuevos valores en el Google Sheet
                             actualizar_perfil_usuario(gspread_client, username, "Racha_Actual", racha_actual)
                             actualizar_perfil_usuario(gspread_client, username, "Ultimo_Dia_Registrado", fecha_de_hoy_obj.strftime('%Y-%m-%d'))
 
-                            # Guardamos la racha en session_state para mostrar el confeti después del rerun
                             if racha_actual > 0 and racha_actual % 10 == 0:
-                                st.session_state['celebrar_racha'] = racha_actual
-                                
+                                st.session_state['celebrar_racha'] = racha_actual       
                             
                             dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                             dia_a_actualizar = dias_semana[fecha_registro.weekday()]
@@ -273,6 +279,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
