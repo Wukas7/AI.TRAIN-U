@@ -168,13 +168,35 @@ def actualizar_perfil_usuario(client, username, variable_a_actualizar, nuevo_val
 def cargar_lista_ejercicios(client):
     """Carga la lista de todos los ejercicios disponibles."""
     try:
-        sheet = client.open("AI.TRAIN-U").worksheet("Ejercicios")
-        # get_col(1) coge todos los valores de la primera columna
-        lista_ejercicios = sheet.get_col(1, include_empty=False)[1:] # [1:] para saltar la cabecera
+        spreadsheet = client.open("AI.TRAIN-U")
+        sheet = spreadsheet.worksheet("Ejercicios")
+        
+        # get_all_values() es más robusto que get_col()
+        # Coge todos los datos y luego filtramos la primera columna
+        todos_los_valores = sheet.get_all_values()
+        
+        # Nos aseguramos de que la hoja no está vacía
+        if len(todos_los_valores) < 2:
+            st.warning("La pestaña 'Ejercicios' está vacía o solo tiene cabecera.")
+            return ["Press Banca (ejemplo)", "Sentadilla (ejemplo)"] # Lista de emergencia
+            
+        # Creamos la lista a partir de la primera columna, saltando la cabecera
+        # fila[0] coge el primer elemento de cada fila
+        lista_ejercicios = [fila[0] for fila in todos_los_valores[1:] if fila[0].strip() != ""]
+        
+        if not lista_ejercicios:
+             st.warning("No se encontraron ejercicios en la primera columna de la pestaña 'Ejercicios'.")
+             return ["Press Banca (ejemplo)", "Sentadilla (ejemplo)"]
+
         return lista_ejercicios
-    except:
-        # Si falla, devuelve una lista de ejemplo para que la app no se rompa
-        return ["Press Banca", "Sentadilla", "Peso Muerto"]
+        
+    except gspread.exceptions.WorksheetNotFound:
+        st.error("Error Crítico: No se encontró la pestaña 'Ejercicios' en tu Google Sheet. Por favor, créala.")
+        return ["Error: Pestaña no encontrada"]
+    except Exception as e:
+        # ¡ESTO NOS DIRÁ EL ERROR REAL!
+        st.error(f"Ocurrió un error inesperado al cargar la lista de ejercicios: {e}")
+        return ["Error al cargar"]
 
 # --- (NUEVA) FUNCIÓN PARA CARGAR EL HISTORIAL DETALLADO ---
 def cargar_historial_detallado(client, username):
