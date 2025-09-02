@@ -163,7 +163,7 @@ def main():
                         resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
                         # Si se usó la tabla, creamos el resumen a partir de ella
-                            resumen_entreno_hoy = "\n".join(
+                            resumen_tabla = "\n".join(
                                 f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
                                 for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
                             )
@@ -263,6 +263,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
