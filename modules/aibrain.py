@@ -45,8 +45,8 @@ def generar_plan_semana(perfil, historial_mes_str):
         return None
 
 def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semanal_actual, fecha_de_registro):
-    """Genera el plan detallado para mañana con lógica de reorganización avanzada."""
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    """Genera el plan detallado para mañana con lógica de reorganización y sobrecarga progresiva avanzada."""
+    model = genai.GenerAItiveModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     fecha_hoy = fecha_de_registro
@@ -59,7 +59,7 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
     lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
 
     prompt = f"""
-    Eres un entrenador personal de élite, experto en planificación y adaptación de rutinas. Tu objetivo es crear un plan DETALLADO para mañana, reorganizando la semana si es necesario.
+    Eres un entrenador personal de élite, experto en fisiología, planificación adaptativa y sobrecarga progresiva. Tu objetivo es crear un plan DETALLADO para mañana, tomando decisiones inteligentes basadas en toda la información disponible.
 
     **INFORMACIÓN DISPONIBLE:**
 
@@ -75,29 +75,46 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
         - Según el plan original, mañana tocaría: **{lo_que_toca_manana}**.
 
     4.  **PERFIL Y CONTEXTO DEL ATLETA:**
-        - Perfil (Objetivos, Lesiones, Equipamiento, etc.): {perfil}
-        - Historial de Rendimiento (Series, Reps, Pesos): {historial_detallado_texto}
+        - Perfil Completo:
+            - Objetivo: {perfil.get('Objetivo', 'No especificado')}
+            - Lesiones/Limitaciones: {perfil.get('Lesiones/Limitaciones', 'Ninguna')}
+            - Disponibilidad: {perfil.get('Disponibilidad', 'No especificada')}
+            - Equipamiento: {perfil.get('Equipamiento', 'No especificado')}
+        - Historial Detallado de Rendimiento (Series, Reps, Pesos): {historial_detallado_texto}
 
-    **TU PROCESO DE DECISIÓN (SIGUE ESTOS PASOS ESTRICTAMENTE):**
+    **TU PROCESO DE DECISIÓN Y TAREAS (EN ESTE ORDEN ESTRICTO):**
 
-    1.  **ANÁLISIS DE CONFLICTO:** Compara el entrenamiento REALIZADO hoy con el planificado para MAÑANA.
-        - **CASO A (Conflicto):** Si los grupos musculares principales se solapan (ej: hoy se hizo espalda y mañana toca espalda), **NO debes planificar espalda de nuevo.**
-        - **CASO B (Sin Conflicto):** Si no hay solapamiento (ej: hoy se hizo espalda y mañana toca pierna), el plan de mañana se mantiene.
+    1.  **ANÁLISIS DE CONFLICTO MUSCULAR (REGLA CRÍTICA):** Compara los grupos musculares del entrenamiento REALIZADO hoy con los del entrenamiento planeado para MAÑANA.
+        - **CASO A (Conflicto):** Si hay solapamiento (ej: hoy se hizo espalda y mañana toca espalda), **NO debes planificar espalda de nuevo.** La salud y la recuperación son la máxima prioridad.
+        - **CASO B (Sin Conflicto):** Si no hay solapamiento, el plan de mañana se mantiene.
 
-    2.  **ACCIÓN A TOMAR:**
+    2.  **ACCIÓN A TOMAR BASADA EN EL ANÁLISIS:**
         - **SI ESTÁS EN EL CASO A (Conflicto):**
-            a. **REORGANIZA:** El entrenamiento de mañana será el que **estaba planeado para hoy ({lo_que_tocaba_hoy})** pero no se hizo.
-            b. **JUSTIFICA:** Empieza tu respuesta explicando el cambio. Ejemplo: "Como hoy has entrenado espalda (que tocaba mañana), vamos a reorganizar. Mañana harás el entrenamiento de pecho que estaba planeado para hoy."
-            c. **RE-PLANIFICA:** En la sección `### 🔄 Sugerencia de Re-planificación Semanal`, sugiere cómo queda el resto de la semana. Por ejemplo, el entreno de espalda se podría mover al día que ahora queda libre.
+            a. **REORGANIZA:** El entrenamiento de mañana será el que **estaba planeado para hoy ({lo_que_tocaba_hoy}) pero no se hizo.**
+            b. **JUSTIFICA:** Empieza tu respuesta explicando el cambio de forma clara y motivadora.
+            c. **RE-PLANIFICA:** En la sección `### 🔄 Sugerencia de Re-planificación Semanal`, sugiere cómo queda el resto de la semana.
 
         - **SI ESTÁS EN EL CASO B (Sin Conflicto):**
             a. **MANTIENE EL PLAN:** El entrenamiento de mañana seguirá siendo **{lo_que_toca_manana}**.
-            b. **APLICA SOBRECARGA PROGRESIVA:** Usa el "Historial de Rendimiento" para detallar los ejercicios de mañana con los pesos y repeticiones adecuados.
+            b. **APLICA SOBRECARGA PROGRESIVA:** Usa el "Historial de Rendimiento" para detallar los ejercicios de mañana con los pesos y repeticiones adecuados. **Sé explícito con los pesos a usar** (ej: "Press Banca: 3x8 con 82.5 kg").
 
-    3.  **CREA EL PLAN DETALLADO:** Basándote en tu decisión (reorganizar o mantener), crea el plan detallado para mañana con las secciones de siempre (Entrenamiento, Dieta, Consejo), respetando el equipamiento y las sensaciones del usuario.
+    3.  **CREA EL PLAN DETALLADO:** Basándote en tu decisión, crea el plan detallado para mañana.
+        - **Respeta el Equipamiento:** Los ejercicios deben ser 100% realizables con el material disponible.
+        - **Considera las Sensaciones:** Ajusta la intensidad o el volumen si el usuario reportó dolor o cansancio.
+
+    4.  **AÑADE LAS SECCIONES ADICIONALES:** Crea siempre el plan de dieta y el consejo del día.
 
     **FORMATO DE SALIDA:**
     Usa el formato Markdown habitual. Si hay una justificación, ponla al principio.
+    ### 🏋️ Plan de Entrenamiento para Mañana
+    ...
+    ### 🥗 Plan de Dieta para Mañana
+    ...
+    ### 💡 Consejo del Día
+    ...
+    (Opcional si es necesario)
+    ### 🔄 Sugerencia de Re-planificación Semanal
+    ...
     """
     try:
         response = model.generate_content(prompt)
