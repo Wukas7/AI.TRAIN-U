@@ -2,7 +2,7 @@ import google.generativeai as genai
 from datetime import datetime, timedelta
 import streamlit as st # Necesario para st.error
 
-def generar_plan_semanal(perfil, historial_mes_str):
+def generar_plan_semana(perfil, historial_mes_str):
     """Genera la estructura de entrenamiento para 7 días con un formato estricto."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
@@ -41,17 +41,17 @@ def generar_plan_semanal(perfil, historial_mes_str):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        st.error(f"Error al generar el plan semanal: {e}")
+        st.error(f"Error al generar el plan semana: {e}")
         return None
 
-def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semanal_actual, fecha_de_registro):
+def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semana_actual, fecha_de_registro):
     """Genera el plan detallado para mañana con lógica de adaptación avanzada."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     fecha_manana = fecha_de_registro + timedelta(days=1)
     dia_manana_nombre = dias_semana[fecha_manana.weekday()]
-    lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
+    lo_que_toca_manana = plan_semana_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
 
     prompt = f"""
     Eres un entrenador personal adaptativo de élite. Tu objetivo es crear un plan DETALLADO para mañana, tomando decisiones inteligentes basadas en la información real.
@@ -59,7 +59,7 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
     **INFORMACIÓN DISPONIBLE:**
 
     1.  **PLAN ESTRATÉGICO SEMANAL:**
-        - El plan original para la semana es: {plan_semanal_actual.get('Plan_Original_Completo', '')}
+        - El plan original para la semana es: {plan_semana_actual.get('Plan_Original_Completo', '')}
         - Según este plan, mañana ({dia_manana_nombre}) tocaría: **{lo_que_toca_manana}**.
 
     2.  **DATOS DEL DÍA REGISTRADO ({fecha_de_registro.strftime('%A, %d de %B')}):**
