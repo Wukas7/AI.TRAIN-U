@@ -2,36 +2,35 @@ import google.generativeai as genai
 from datetime import datetime, timedelta
 import streamlit as st # Necesario para st.error
 
-# --- Funciones de IA (Con las nuevas modificaciones) ---
-def generar_plan_semana(perfil, historial_mes_str):
+def generar_plan_semanal(perfil, historial_mes_str):
     """Genera la estructura de entrenamiento para 7 días con un formato estricto."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = f"""
-    Eres un planificador de fitness de élite. Basado en el perfil completo del usuario, incluyendo su disponibilidad y equipamiento, genera una estructura de entrenamiento para los 7 días de la semana.
-     
-    **Perfil del Usuario:**
+    Eres un entrenador personal de élite. Tu tarea es diseñar una estructura de entrenamiento semanal.
+
+    **PERFIL DEL USUARIO:**
     - Objetivo: {perfil.get('Objetivo', 'No especificado')}
     - Edad: {perfil.get('Edad', 'No especificado')}
     - Lesiones/Limitaciones: {perfil.get('Lesiones/Limitaciones', 'Ninguna')}
-    - **Disponibilidad:** {perfil.get('Disponibilidad', 'No especificada')}
-    - **Equipamiento:** {perfil.get('Equipamiento', 'No especificado')}
+    - Disponibilidad: {perfil.get('Disponibilidad', 'No especificada')}
+    - Equipamiento: {perfil.get('Equipamiento', 'No especificado')}
     
-    Historial del último mes: {historial_mes_str}
+    **HISTORIAL DEL ÚLTIMO MES:**
+    {historial_mes_str}
 
-    **TU TAREA:**
-    Genera una estructura de entrenamiento para los 7 días de la semana.
-    **CRÍTICO:** El plan DEBE ser realista y ajustarse estrictamente a la DISPONIBILIDAD del usuario. Si solo tiene 3 días, crea un plan de 3 días de entreno y 4 de descanso/recuperación.
-    Los ejercicios sugeridos DEBEN ser realizables con el EQUIPAMIENTO disponible.
-    
-    **FORMATO OBLIGATORIO:**
-    Debes responder con EXACTAMENTE 7 líneas.
-    Cada línea DEBE empezar con el nombre del día de la semana (Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo), seguido de dos puntos y el plan.
-    NO incluyas ninguna otra palabra, saludo o explicación antes o después de las 7 líneas.
-    NO uses la palabra genérica 'Día'. Usa el nombre específico de cada día de la semana.
+    **INSTRUCCIONES:**
+    1.  **Analiza la Disponibilidad:** Diseña un plan que se ajuste estrictamente al número de días disponibles. Si el usuario solo puede 3 días, el plan debe tener 3 días de entrenamiento y 4 de descanso/recuperación.
+    2.  **Considera el Equipamiento:** Los tipos de entrenamiento que sugieras deben ser realizables con el material disponible.
+    3.  **Usa el Historial:** Observa el historial para asegurar variedad y una progresión lógica.
 
-    **EJEMPLO DE RESPUESTA PERFECTA (si la disponibilidad es 4 días):**
-    Lunes: Push (Pecho, Hombro, Tríceps)
-    Martes: Pull (Espalda, Bíceps)
+    **FORMATO DE SALIDA OBLIGATORIO:**
+    - Responde con EXACTAMENTE 7 líneas.
+    - Cada línea DEBE empezar con el nombre del día de la semana (Lunes, Martes,...), seguido de dos puntos y el plan.
+    - NO incluyas saludos, introducciones o cualquier otro texto. Solo las 7 líneas del plan.
+
+    **EJEMPLO DE RESPUESTA PERFECTA (para disponibilidad de 4 días):**
+    Lunes: Empuje (Pecho, Hombro, Tríceps)
+    Martes: Tirón (Espalda, Bíceps)
     Miércoles: Descanso total
     Jueves: Pierna (Cuádriceps, Femoral)
     Viernes: Cardio y Abdominales
@@ -45,56 +44,48 @@ def generar_plan_semana(perfil, historial_mes_str):
         st.error(f"Error al generar el plan semanal: {e}")
         return None
 
-def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semana_actual,fecha_de_registro):
+def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semanal_actual, fecha_de_registro):
+    """Genera el plan detallado para mañana con lógica de adaptación avanzada."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     fecha_manana = fecha_de_registro + timedelta(days=1)
     dia_manana_nombre = dias_semana[fecha_manana.weekday()]
-    lo_que_toca_manana = plan_semana_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
-    # --------------------------------------------------
+    lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
 
     prompt = f"""
-    Eres un entrenador personal adaptativo. Tu objetivo es crear un plan DETALLADO para mañana y, si es necesario, re-planificar el resto de la semana.
+    Eres un entrenador personal adaptativo de élite. Tu objetivo es crear un plan DETALLADO para mañana, tomando decisiones inteligentes basadas en la información real.
 
-    **CONTEXTO ESTRATÉGICO:**
-    - El plan original para la semana es: {plan_semana_actual.get('Plan_Original_Completo', '')}
-    - El día del registro es {fecha_de_registro.strftime('%A, %d de %B')}.
-    - Por lo tanto, el plan a generar es para **mañana, {fecha_manana.strftime('%A, %d de %B')}**, y el plan general dice que toca: **{lo_que_toca_manana}**.
+    **INFORMACIÓN DISPONIBLE:**
 
-    **REALIDAD (HOY Y PERFIL):**
-    - Perfil Completo:
-        - Objetivo: {perfil.get('Objetivo', 'No especificado')}
-        - Lesiones/Limitaciones: {perfil.get('Lesiones/Limitaciones', 'Ninguna')}
-        - **Disponibilidad:** {perfil.get('Disponibilidad', 'No especificada')}
-        - **Equipamiento:** {perfil.get('Equipamiento', 'No especificado')}
-       
-    **DATOS DEL ENTRENAMIENTO DE HOY ({fecha_de_registro.strftime('%d/%m')}):**
-    - Sensaciones y datos generales: {datos_hoy}
+    1.  **PLAN ESTRATÉGICO SEMANAL:**
+        - El plan original para la semana es: {plan_semanal_actual.get('Plan_Original_Completo', '')}
+        - Según este plan, mañana ({dia_manana_nombre}) tocaría: **{lo_que_toca_manana}**.
 
-    **HISTORIAL DETALLADO DE EJERCICIOS (PESOS Y REPETICIONES):**
-    {historial_detallado_texto}
-    
-    **TU TAREA:**
-    1. **ANALIZA EL HISTORIAL DETALLADO.** Fíjate en los pesos y repeticiones de los ejercicios clave de las últimas sesiones.
-    2. **CREA EL PLAN DE ENTRENAMIENTO PARA MAÑANA APLICANDO SOBRECARGA PROGRESIVA.** Para cada ejercicio, sugiere un peso y número de repeticiones y series que suponga un reto basado en el historial. Por ejemplo, si la semana pasada hizo "Press Banca 3x8 80kg", sugiere "Press Banca 3x8 82.5kg" o "Press Banca 3x9 80kg". **Sé explícito con los pesos a usar.**
-    3. **Analiza el entrenamiento de hoy.** Compara lo que hice (`{datos_hoy['entreno']}`) con lo que estaba planeado. Adapta el entreno futuro al entreno hecho, no se pueden hacer dos días seguidos del mismo entrenamiento aunque el plan lo diga, ajusta entonces el plan semanal.
-    4. **Crea el plan detallado para mañana.** Adáptalo si mis sensaciones de hoy lo requieren (dolor, cansancio). ** Los ejercicios específicos que elijas DEBEN ser realizables con el EQUIPAMIENTO disponible. Si el equipamiento es "solo peso corporal", no puedes sugerir press banca.
-    5. **(IMPORTANTE) Re-planifica si es necesario.** Si el entrenamiento de hoy fue muy diferente a lo planeado (ej: hice pierna cuando tocaba pecho), el resto de la semana podría necesitar ajustes para mantener el equilibrio. Si crees que hay que cambiar el plan para los días siguientes, añade una sección al final de tu respuesta llamada `### 🔄 Sugerencia de Re-planificación Semanal` con la nueva estructura para los días que quedan. Si no hay cambios necesarios, no incluyas esta sección.
-    6. **CREA EL PLAN DE DIETA Y EL CONSEJO DEL DÍA** como siempre.
+    2.  **DATOS DEL DÍA REGISTRADO ({fecha_de_registro.strftime('%A, %d de %B')}):**
+        - Entrenamiento Realizado y Notas: {datos_hoy.get('entreno', 'No especificado')}
+        - Sensaciones: {datos_hoy.get('sensaciones', 'No especificadas')}
+        - Nutrición y Descanso: Calorías={datos_hoy.get('calorias')}, Proteínas={datos_hoy.get('proteinas')}, Descanso={datos_hoy.get('descanso')} horas.
 
-    **FORMATO DE RESPUESTA:**
-    ### 🏋️ Plan de Entrenamiento para Mañana
-    ...
-    ### 🥗 Plan de Dieta para Mañana
-    ...
-    ### 💡 Consejo del Día
-    ...
-    (Opcional)
-    ### 🔄 Sugerencia de Re-planificación Semanal
-    Martes: ...
-    Miércoles: ...
-    Jueves: ...
+    3.  **PERFIL Y CONTEXTO DEL ATLETA:**
+        - Perfil (Objetivos, Lesiones, etc.): {perfil}
+        - Historial Detallado de Rendimiento (Series, Reps, Pesos): {historial_detallado_texto}
+
+    **TU PROCESO DE DECISIÓN Y TAREAS (EN ESTE ORDEN):**
+
+    1.  **REGLA CRÍTICA DE RECUPERACIÓN:** Compara el entrenamiento REALIZADO hoy (`{datos_hoy.get('entreno')}`) con el planificado para mañana (`{lo_que_toca_manana}`). Si los grupos musculares principales se solapan (ej: hoy hizo espalda y mañana toca espalda), **DEBES MODIFICAR EL PLAN DE MAÑANA**. Justifica el cambio de forma clara (ej: "Para asegurar una recuperación óptima..."). La salud y la recuperación son la máxima prioridad.
+
+    2.  **PLAN DE ENTRENAMIENTO DETALLADO PARA MAÑANA:**
+        - Basándote en tu decisión anterior, define el entrenamiento para mañana.
+        - **Aplica Sobrecarga Progresiva:** Usa el "Historial Detallado de Rendimiento" para sugerir pesos y repeticiones que supongan un reto. Sé explícito (ej: "Press Banca: 3x8 con 82.5 kg").
+        - **Respeta el Equipamiento:** Los ejercicios deben ser realizables con el equipamiento del usuario (`{perfil.get('Equipamiento')}`).
+
+    3.  **PLAN DE DIETA Y CONSEJO:** Crea el plan de dieta y el consejo del día como de costumbre.
+
+    4.  **RE-PLANIFICACIÓN SEMANAL (OPCIONAL):** Si el cambio realizado en el punto 1 es significativo, añade al final una sección `### 🔄 Sugerencia de Re-planificación Semanal` con una nueva estructura para los días restantes de la semana.
+
+    **FORMATO DE SALIDA:**
+    Usa el formato Markdown habitual con las secciones ### 🏋️ Plan de Entrenamiento para Mañana, ### 🥗 Plan de Dieta para Mañana, ### 💡 Consejo del Día y, si es necesario, ### 🔄 Sugerencia de Re-planificación Semanal.
     """
     try:
         response = model.generate_content(prompt)
