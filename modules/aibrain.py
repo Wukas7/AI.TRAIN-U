@@ -4,7 +4,7 @@ import streamlit as st # Necesario para st.error
 
 def generar_plan_semana(perfil, historial_mes_str):
     """Genera la estructura de entrenamiento para 7 días con un formato estricto."""
-    model = genai.GenerAItiveModel('gemini-1.5-flash')
+    model = genai.GeneraitiveModel('gemini-1.5-flash')
     prompt = f"""
     Eres un entrenador personal de élite. Tu tarea es diseñar una estructura de entrenamiento semanal.
 
@@ -46,7 +46,7 @@ def generar_plan_semana(perfil, historial_mes_str):
 
 def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semanal_actual, fecha_de_registro):
     """Genera el plan detallado para mañana con lógica de reorganización y sobrecarga progresiva avanzada."""
-    model = genai.GenerAItiveModel('gemini-1.5-flash')
+    model = genai.GeneraitiveModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     fecha_hoy = fecha_de_registro
