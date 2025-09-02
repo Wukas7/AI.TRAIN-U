@@ -45,7 +45,7 @@ def generar_plan_semana(perfil, historial_mes_str):
         return None
 
 def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_semanal_actual, fecha_de_registro):
-    """Genera el plan detallado para mañana con lógica de decisión en Python."""
+    """Genera el plan detallado para mañana con lógica de decisión en Python y depuración avanzada."""
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -59,32 +59,40 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
     lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
     entreno_realizado_hoy = datos_hoy.get('entreno', '').lower()
 
-    # --- LÓGICA DE DECISIÓN (HECHA EN PYTHON) ---
+    # --- LÓGICA DE DECISIÓN MEJORADA (HECHA EN PYTHON) ---
     entrenamiento_objetivo = lo_que_toca_manana
     justificacion_texto = ""
     conflicto = False
 
-    # Verificamos si hay conflicto (ej: si el plan de mañana "Espalda" está en el entreno de hoy "Remo con barra (Espalda)")
-    if lo_que_toca_manana.lower() in entreno_realizado_hoy or any(keyword in entreno_realizado_hoy for keyword in lo_que_toca_manana.lower().split()):
+    # Convertimos el plan de mañana en palabras clave para una mejor comparación
+    palabras_clave_plan = [palabra for palabra in lo_que_toca_manana.lower().replace('(', '').replace(')', '').split() if len(palabra) > 3]
+
+    # Comprobamos si alguna de las palabras clave del plan de mañana está en el entreno de hoy
+    if entreno_realizado_hoy and any(palabra in entreno_realizado_hoy for palabra in palabras_clave_plan):
         conflicto = True
 
     if conflicto:
-        # CASO A: Hay conflicto. Reorganizamos.
-        entrenamiento_objetivo = lo_que_tocaba_hoy # El objetivo ahora es el entreno que se saltó hoy
+        entrenamiento_objetivo = lo_que_tocaba_hoy
         justificacion_texto = (
-            f"**¡Atención, entrenador!** Como hoy has entrenado **{entreno_realizado_hoy.splitlines()[0]}** (que se solapa con el plan de mañana), "
-            f"vamos a reorganizar la semana para asegurar una recuperación perfecta. Mañana harás el entrenamiento que estaba planeado para hoy: **{lo_que_tocaba_hoy}**."
+            f"**Justificación del Cambio:** Como hoy has entrenado ({entreno_realizado_hoy.splitlines()[0]}...), "
+            f"lo cual se solapa con el plan de mañana ({lo_que_toca_manana}), vamos a reorganizar la semana para una recuperación óptima. "
+            f"Mañana harás el entrenamiento que estaba planeado para hoy: **{lo_que_tocaba_hoy}**."
         )
-        # Aquí también se activaría la re-planificación
     
-    # --- FIN DE LA LÓGICA DE DECISIÓN ---
+    # --- (NUEVO) PANEL DE DEPURACIÓN ANTES DE LLAMAR A LA IA ---
+    with st.expander("🐞 Información de Depuración (Pre-Llamada a IA)"):
+        st.write("**Decisión Lógica de Python:**")
+        st.write(f"- ¿Conflicto detectado?: **{conflicto}**")
+        st.write(f"- Entrenamiento Realizado Hoy: `{entreno_realizado_hoy}`")
+        st.write(f"- Plan Original para Mañana: `{lo_que_toca_manana}`")
+        st.write(f"- **Objetivo final para la IA:** `{entrenamiento_objetivo}`")
+        st.write(f"- Justificación generada: `{justificacion_texto}`")
+    # -----------------------------------------------------------
 
-
-    # --- EL NUEVO PROMPT (MÁS SIMPLE Y DIRECTO) ---
     prompt = f"""
-    Eres un entrenador personal de élite. Tu única tarea es crear un plan de entrenamiento y dieta DETALLADO para un objetivo específico.
+    Eres un entrenador personal. Tu única tarea es crear un plan DETALLADO para el objetivo específico que te doy.
 
-    **JUSTIFICACIÓN DEL PLAN DE HOY (si la hay):**
+    **Justificación del Plan (si aplica):**
     {justificacion_texto}
 
     **OBJETIVO DE ENTRENAMIENTO PARA MAÑANA:**
@@ -93,24 +101,32 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
     **INFORMACIÓN DEL ATLETA:**
     - Perfil: {perfil}
     - Historial de Rendimiento: {historial_detallado_texto}
-    - Datos del día anterior (sensaciones, nutrición): {datos_hoy}
+    - Datos del día anterior: {datos_hoy}
 
     **INSTRUCCIONES:**
-    1.  Crea un plan de entrenamiento detallado para el **"OBJETIVO DE ENTRENAMIENTO PARA MAÑANA"** que te he dado.
-    2.  Aplica **sobrecarga progresiva** basándote en el historial. Sé explícito con los pesos.
-    3.  Respeta el **equipamiento** y las **sensaciones** del usuario.
+    1.  Crea un plan de entrenamiento detallado para el "OBJETIVO DE ENTRENAMIENTO PARA MAÑANA".
+    2.  Aplica sobrecarga progresiva basándote en el historial.
+    3.  Respeta el equipamiento y las sensaciones.
     4.  Crea el plan de dieta y el consejo del día.
-    5.  Si la justificación inicial indica un cambio, sugiere una re-planificación semanal en la sección `### 🔄 Sugerencia de Re-planificación Semanal`.
+    5.  Si la justificación indica un cambio, sugiere una re-planificación en la sección `### 🔄 Sugerencia de Re-planificación Semanal`.
 
     **FORMATO DE SALIDA:**
-    Usa el formato Markdown habitual. Si hay justificación, inclúyela al principio.
     ### 🏋️ Plan de Entrenamiento para Mañana
+    ...
     ### 🥗 Plan de Dieta para Mañana
+    ...
     ### 💡 Consejo del Día
+    ...
     """
     try:
         response = model.generate_content(prompt)
+        # (NUEVO) Comprobamos si la respuesta está vacía
+        if not response.text or not response.text.strip():
+            st.error("La IA ha devuelto una respuesta vacía. Puede ser un problema con el prompt o un filtro de seguridad.")
+            return None
         return response.text
     except Exception as e:
-        st.error(f"Error al contactar con la IA para el plan diario: {e}")
+        # (NUEVO) MOSTRAMOS EL ERROR COMPLETO EN LA APP
+        st.error("Ha ocurrido un error al contactar con la IA. El plan no se ha podido generar.")
+        st.exception(e) # st.exception muestra el traceback completo del error
         return None
