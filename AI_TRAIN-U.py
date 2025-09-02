@@ -167,6 +167,10 @@ def main():
                                 f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
                                 for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
                             )
+                            resumen_entreno_hoy = resumen_tabla
+                            if entreno_simple: # Si el campo de notas no está vacío
+                                resumen_entreno_hoy += f"\n\n**Notas Adicionales:**\n{entreno_simple}"
+                                
                             # Guardamos los datos detallados
                             fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
                             guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
@@ -259,6 +263,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
