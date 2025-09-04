@@ -171,7 +171,7 @@ def main():
                     with st.spinner("Guardando tus datos y generando el nuevo plan..."):
                         resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
-                            resumen_tabla = "\n".join(f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'])
+                            resumen_tabla = "\n".join(f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'])
                             resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
                             fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
                             guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
@@ -272,6 +272,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
