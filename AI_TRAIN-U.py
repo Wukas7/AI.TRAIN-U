@@ -13,7 +13,7 @@ from modules.gsheets import (
     cargar_perfil, cargar_historial, cargar_plan_semana,
     guardar_registro, guardar_plan_semana_nuevo, actualizar_plan_completo,
     cargar_historial_detallado, guardar_entreno_detallado, cargar_lista_ejercicios,
-    actualizar_perfil_usuario, cargar_df_ejercicios
+    actualizar_perfil_usuario, cargar_df_ejercicios, actualizar_fila_plan_semanal
 )
 from modules.aibrain import generar_plan_semana, generar_plan_diario
 
@@ -272,6 +272,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
