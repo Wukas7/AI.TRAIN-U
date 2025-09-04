@@ -122,18 +122,15 @@ def main():
             st.header(f"✍️ Registra tu Día")
             st.info("Registra tu día y, si es necesario, ajusta el plan de los días siguientes en la tabla. Cuando termines, pulsa el botón de abajo.")
 
-            if 'plan_modificado' not in st.session_state:
-                if plan_semana_actual:
+            if plan_semana_actual:
+                if 'plan_modificado' not in st.session_state:
                     dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
                     plan_editable_data = {dia: plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias}
                     st.session_state.plan_modificado = pd.DataFrame([plan_editable_data])
-                else:
-                    st.session_state.plan_modificado = pd.DataFrame()
-
-            if not st.session_state.plan_modificado.empty:
+                    
                 st.subheader("Planificación Futura (Editable)")
                 plan_modificado_df = st.data_editor(st.session_state.plan_modificado, key="editor_plan_semanal")
-                st.session_state.plan_modificado = plan_modificado_df # Guardamos los cambios del usuario
+                st.session_state.plan_modificado = plan_modificado_df
 
             with st.form("registro_y_generacion_form"):
                 st.subheader("Registro del Día Realizado")
@@ -174,10 +171,7 @@ def main():
                     with st.spinner("Guardando tus datos y generando el nuevo plan..."):
                         resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
-                            resumen_tabla = "\n".join(
-                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
-                                for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
-                            )
+                            resumen_tabla = "\n".join(f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'])
                             resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
                             fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
                             guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
@@ -185,19 +179,35 @@ def main():
                             resumen_entreno_hoy = entreno_simple
             
                     # Guardar el registro general
+                        actualizar_fila_plan_semanal(gspread_client, username, st.session_state.plan_modificado)
+                        dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                            
+                        dia_a_actualizar = dias_semana[fecha_registro.weekday()]
+                                
+                        plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
+                            
+                        if resumen_entreno_hoy and (resumen_entreno_hoy.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in resumen_entreno_hoy.strip().lower()):
+                            nuevo_estado = "✅ Realizado"
+                        else:
+                            nuevo_estado = "🔄 Modificado"
+                                    
+                        actualizar_plan_completo(gspread_client, username, dia_a_actualizar, resumen_entreno_hoy, nuevo_estado)
+                        plan_confirmado = cargar_plan_semana(gspread_client, username)
+                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...}
+                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
+
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_confirmado, fecha_registro)
+
+
                     fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
                     nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, ""] # El plan se genera después
                     guardar_registro(gspread_client, username, nueva_fila_datos)
                     actualizar_fila_plan_semanal(gspread_client, username, st.session_state.plan_modificado)
-                    plan_confirmado = cargar_plan_semana(gspread_client, username)
-            
-                    datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...}
-                    historial_detallado_texto = historial_detallado_df.tail(20).to_string()
-            
-                    # El prompt de la IA ahora es simple. Solo necesita saber qué toca mañana.
-                    plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_confirmado, fecha_registro)
 
                     if plan_generado:
+                        fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
+                        nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, plan_generado]
+                        guardar_registro(gspread_client, username, nueva_fila_datos)
                                                  
                             # ------RACHA DE DIAS------------
                             racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
@@ -236,18 +246,7 @@ def main():
                             if racha_actual > 0 and racha_actual % 10 == 0:
                                 st.session_state['celebrar_racha'] = racha_actual       
                             
-                            dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                            dia_a_actualizar = dias_semana[fecha_registro.weekday()]
-                                
-                            plan_previsto = plan_semana_actual.get(f"{dia_a_actualizar}_Plan", "")
                             
-                            if resumen_entreno_hoy and (resumen_entreno_hoy.strip().lower() in plan_previsto.strip().lower() or plan_previsto.strip().lower() in resumen_entreno_hoy.strip().lower()):
-                               nuevo_estado = "✅ Realizado"
-                            else:
-                                nuevo_estado = "🔄 Modificado"
-                                    
-                            actualizar_plan_completo(gspread_client, username, dia_a_actualizar, resumen_entreno_hoy, nuevo_estado)
-
                             if len(partes_plan) > 1:
                                 st.info("¡La IA ha re-planificado el resto de tu semana!")
                             st.success("¡Plan generado y semana actualizada!")
@@ -315,6 +314,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
