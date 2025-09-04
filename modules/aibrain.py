@@ -51,41 +51,39 @@ def generar_plan_diario(perfil, historial_detallado_texto, datos_hoy, plan_seman
     dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     fecha_manana = fecha_de_registro + timedelta(days=1)
     dia_manana_nombre = dias_semana[fecha_manana.weekday()]
-    lo_que_toca_manana = plan_semanal_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
 
+    
+    try:
+        lo_que_toca_manana = plan_semana_confirmado[plan_semana_confirmado['Día'] == dia_manana_nombre]['Plan'].iloc[0]
+    except (IndexError, KeyError):
+        lo_que_toca_manana = "Día libre"
+
+    
     prompt = f"""
-    Eres un entrenador personal adaptativo de élite. Tu objetivo es crear un plan DETALLADO para mañana, tomando decisiones inteligentes basadas en la información real.
+    Eres un entrenador personal de élite. Tu única tarea es crear un plan de entrenamiento y dieta DETALLADO para el objetivo específico que te doy.
 
-    **INFORMACIÓN DISPONIBLE:**
+    **TAREA PRINCIPAL:**
+    Crear un plan detallado para el siguiente objetivo de entrenamiento: **{lo_que_toca_manana}**.
 
-    1.  **PLAN ESTRATÉGICO SEMANAL:**
-        - El plan original para la semana es: {plan_semanal_actual.get('Plan_Original_Completo', '')}
-        - Según este plan, mañana ({dia_manana_nombre}) tocaría: **{lo_que_toca_manana}**.
-
-    2.  **DATOS DEL DÍA REGISTRADO ({fecha_de_registro.strftime('%A, %d de %B')}):**
-        - Entrenamiento Realizado y Notas: {datos_hoy.get('entreno', 'No especificado')}
-        - Sensaciones: {datos_hoy.get('sensaciones', 'No especificadas')}
-        - Nutrición y Descanso: Calorías={datos_hoy.get('calorias')}, Proteínas={datos_hoy.get('proteinas')}, Descanso={datos_hoy.get('descanso')} horas.
-
-    3.  **PERFIL Y CONTEXTO DEL ATLETA:**
-        - Perfil (Objetivos, Lesiones, etc.): {perfil}
-        - Historial Detallado de Rendimiento (Series, Reps, Pesos): {historial_detallado_texto}
-
-    **TU PROCESO DE DECISIÓN Y TAREAS (EN ESTE ORDEN):**
-
-    1.  **REGLA CRÍTICA DE RECUPERACIÓN:** Compara el entrenamiento REALIZADO hoy (`{datos_hoy.get('entreno')}`) con el planificado para mañana (`{lo_que_toca_manana}`). Si los grupos musculares principales se solapan (ej: hoy hizo espalda y mañana toca espalda), **DEBES MODIFICAR EL PLAN DE MAÑANA**. Justifica el cambio de forma clara (ej: "Para asegurar una recuperación óptima..."). La salud y la recuperación son la máxima prioridad.
-
-    2.  **PLAN DE ENTRENAMIENTO DETALLADO PARA MAÑANA:**
-        - Basándote en tu decisión anterior, define el entrenamiento para mañana.
-        - **Aplica Sobrecarga Progresiva:** Usa el "Historial Detallado de Rendimiento" para sugerir pesos y repeticiones que supongan un reto. Sé explícito (ej: "Press Banca: 3x8 con 82.5 kg").
-        - **Respeta el Equipamiento:** Los ejercicios deben ser realizables con el equipamiento del usuario (`{perfil.get('Equipamiento')}`).
-
-    3.  **PLAN DE DIETA Y CONSEJO:** Crea el plan de dieta y el consejo del día como de costumbre.
-
+    **CONTEXTO ADICIONAL PARA TU DECISIÓN:**
+    - **Perfil del Atleta:** {perfil}
+    - **Rendimiento Histórico (Series, Reps, Pesos):** {historial_detallado_texto}
+    - **Datos del Último Entrenamiento Registrado ({fecha_de_registro.strftime('%A')}):** {datos_dia_registrado}
+    
+     **INSTRUCCIONES DETALLADAS:**
+    1.  **Plan de Entrenamiento:** Diseña la sesión para **{lo_que_toca_manana}**.
+        - **Aplica Sobrecarga Progresiva:** Basándote en el "Rendimiento Histórico", sugiere pesos y repeticiones explícitos para progresar.
+        - **Respeta el Equipamiento y las Sensaciones:** Asegúrate de que los ejercicios son adecuados. Adaptate a la disponibilidad.
+    2.  **Plan de Dieta:** Proporciona un plan nutricional acorde.
+    3.  **Consejo del Día:** Ofrece un consejo útil.
     4.  **RE-PLANIFICACIÓN SEMANAL (OPCIONAL):** Si el cambio realizado en el punto 1 es significativo, añade al final una sección `### 🔄 Sugerencia de Re-planificación Semanal` con una nueva estructura para los días restantes de la semana.
 
+
     **FORMATO DE SALIDA:**
-    Usa el formato Markdown habitual con las secciones ### 🏋️ Plan de Entrenamiento para Mañana, ### 🥗 Plan de Dieta para Mañana, ### 💡 Consejo del Día y, si es necesario, ### 🔄 Sugerencia de Re-planificación Semanal.
+    Usa el formato Markdown habitual con las secciones:
+    ### 🏋️ Plan de Entrenamiento para Mañana
+    ### 🥗 Plan de Dieta para Mañana
+    ### 💡 Consejo del Día
     """
     try:
         response = model.generate_content(prompt)
