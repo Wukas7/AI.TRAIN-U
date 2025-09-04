@@ -210,3 +210,16 @@ def cargar_df_ejercicios(_client):
             "Equipamiento": ["Barra", "Barra"]
         })
 
+def actualizar_fila_plan_semanal(client, username, df_plan_modificado):
+    """Actualiza toda la fila del plan semanal con los nuevos valores editados por el usuario."""
+    try:
+        sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
+        # ... (lógica para encontrar la fila del usuario, como en 'actualizar_plan_completo') ...
+        
+        if fila_usuario != -1:
+            nuevos_planes = df_plan_modificado.iloc[0].values.tolist()
+            # Actualizamos solo las celdas de los planes (ej: de la columna C a la O)
+            sheet.update(f'C{fila_usuario}:O{fila_usuario}', [nuevos_planes])
+            
+    except Exception as e:
+        st.warning(f"No se pudo actualizar la fila del plan semanal: {e}")
