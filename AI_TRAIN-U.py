@@ -256,50 +256,8 @@ def main():
                         time.sleep(2)
                         st.rerun()
 
-            st.divider()
-    
-            # --- (NUEVO) Panel de Reorganización Semanal y Generación de Plan ---
-            if plan_semana_actual:
-                st.header("🔄 2. Reorganiza tu Semana y Genera el Plan")
-                st.info("Ajusta el plan para los próximos días si lo necesitas. Cuando estés listo, genera el plan para mañana.")
-        
-                dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-        
-                # Preparamos los datos para la tabla editable
-                plan_editable_data = {}
-                for dia in dias:
-                    plan_editable_data[f"{dia}_Plan"] = plan_semana_actual.get(f"{dia}_Plan", "-")
-        
-                df_plan_editable = pd.DataFrame([plan_editable_data])
-        
-                # Creamos una copia para que el usuario la edite
-                plan_modificado_df = st.data_editor(df_plan_editable)
-
-                if st.button("💾 Guardar Cambios y Generar Plan para Mañana"):
-                    with st.spinner("Guardando tu nuevo plan y generando la rutina de mañana..."):
-                        # 1. Guardamos la nueva estructura en el Google Sheet
-                        actualizar_fila_plan_semanal(gspread_client, username, plan_modificado_df)
-
-                        # 2. Cargamos el plan recién actualizado para pasárselo a la IA
-                        plan_semana_confirmado = cargar_plan_semana(gspread_client, username)
-                    
-                        # 3. Llamamos a la IA con el objetivo claro
-                        datos_ultimo_dia = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...} # Necesitamos recuperar estos datos
-                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
-                
-                        # Usamos la fecha del último registro guardado
-                        fecha_ultimo_registro = #...
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_ultimo_dia, plan_semana_confirmado, fecha_ultimo_registro)
-
-                        if plan_generado:
-                            # Guardamos el plan generado en el registro del día anterior
-                            actualizar_celda_registro(gspread_client, username, fecha_ultimo_registro, plan_generado)
-                    
-                            st.session_state['plan_recien_generado'] = plan_generado
-                            st.rerun()
-            
+            st.divider()       
           
-            
             if st.button("👁️ Mostrar mi plan para mañana"):
                 if not historial_df.empty:
                     if 'Plan_Generado' in historial_df.columns:
@@ -314,6 +272,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
