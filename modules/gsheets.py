@@ -210,7 +210,7 @@ def cargar_df_ejercicios(_client):
             "Equipamiento": ["Barra", "Barra"]
         })
 
-def actualizar_fila_plan_semanal(client, username, df_plan_modificado):
+def actualizar_fila_plan_semanal(client, username, df_plan_vertical):
     """Actualiza toda la fila del plan semanal con los nuevos valores editados por el usuario."""
     try:
         sheet = client.open("AI.TRAIN-U").worksheet("Plan_Semanal")
@@ -227,7 +227,7 @@ def actualizar_fila_plan_semanal(client, username, df_plan_modificado):
         if fila_usuario != -1:
             # Creamos la lista de nuevos planes en el orden correcto
             dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-            nuevos_planes = [df_plan_modificado.iloc[0][f"{dia}_Plan"] for dia in dias]
+            nuevos_planes = df_plan_vertical['Plan'].tolist()
             
             # Creamos el rango de celdas a actualizar (ej: C5:I5)
             rango_a_actualizar = f'C{fila_usuario}:I{fila_usuario}'
