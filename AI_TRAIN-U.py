@@ -123,14 +123,23 @@ def main():
             st.info("Registra tu día y, si es necesario, ajusta el plan de los días siguientes en la tabla. Cuando termines, pulsa el botón de abajo.")
 
             if plan_semana_actual:
+                st.header("🔄 2. Reorganiza tu Semana")
+                st.info("Ajusta el plan para los próximos días si lo necesitas. Cuando estés listo, registra tu día y genera el plan de mañana.")
                 if 'plan_modificado' not in st.session_state:
                     dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                    plan_editable_data = {dia: plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias}
+                    plan_editable_data = {
+                        "Día": dias,
+                        "Plan": [plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias]
+                    }
                     st.session_state.plan_modificado = pd.DataFrame([plan_editable_data])
                     
-                st.subheader("Planificación Futura (Editable)")
-                plan_modificado_df = st.data_editor(st.session_state.plan_modificado, key="editor_plan_semanal")
-                st.session_state.plan_modificado = plan_modificado_df
+            df_editado_vertical = st.data_editor(
+                st.session_state.plan_modificado,
+                key="editor_plan_semanal",
+                hide_index=True, # Ocultamos el índice numérico
+                disabled=["Día"] # Hacemos que la columna "Día" no sea editable
+            )
+            st.session_state.plan_modificado = df_editado_vertical
 
             with st.form("registro_y_generacion_form"):
                 st.subheader("Registro del Día Realizado")
@@ -273,6 +282,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
