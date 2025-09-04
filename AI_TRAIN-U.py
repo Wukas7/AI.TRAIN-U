@@ -120,8 +120,16 @@ def main():
             st.divider()
                     
             st.header(f"✍️ Registra tu Día")
-            st.info("Registra tu día y, si es necesario, ajusta el plan de los días siguientes en la tabla. Cuando termines, pulsa el botón de abajo.")
+            
+            if 'usar_detallado' not in st.session_state:
+                st.session_state.usar_detallado = True
 
+            st.session_state.usar_detallado = st.toggle(
+                "Añadir entrenamiento detallado (ejercicios, series, peso)", 
+                value=st.session_state.usar_detallado
+            )
+
+            
             if plan_semana_actual:
                 st.header("🔄 2. Reorganiza tu Semana")
                 st.info("Ajusta el plan para los próximos días si lo necesitas. Cuando estés listo, registra tu día y genera el plan de mañana.")
@@ -282,6 +290,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
