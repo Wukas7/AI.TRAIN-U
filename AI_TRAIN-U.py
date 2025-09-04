@@ -139,7 +139,7 @@ def main():
                 st.subheader("Registro del Día Realizado")
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
             
-            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
+                usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
                             
                 if usar_entreno_detallado:
                     st.subheader("🏋️ Entrenamiento Detallado")
@@ -315,6 +315,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
