@@ -211,50 +211,50 @@ def main():
                                                  
                             # ------RACHA DE DIAS------------
                         racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
-                            ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
+                        ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
                     
 
-                            # Convertimos la fecha de hoy y la última fecha a objetos 'date' para poder compararlas
-                            fecha_de_hoy_obj = fecha_registro
+                        # Convertimos la fecha de hoy y la última fecha a objetos 'date' para poder compararlas
+                        fecha_de_hoy_obj = fecha_registro
 
-                            if ultimo_dia_str and ultimo_dia_str.strip() != "":
-                                formatos_posibles = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'] # AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA
-                                ultimo_dia_obj = None
-                                for formato in formatos_posibles:
-                                    try:
-                                        ultimo_dia_obj = datetime.strptime(ultimo_dia_str, formato).date()
-                                        break # Si funciona, salimos del bucle
-                                    except ValueError:
-                                        continue
+                        if ultimo_dia_str and ultimo_dia_str.strip() != "":
+                            formatos_posibles = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'] # AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA
+                            ultimo_dia_obj = None
+                            for formato in formatos_posibles:
+                                try:
+                                    ultimo_dia_obj = datetime.strptime(ultimo_dia_str, formato).date()
+                                    break # Si funciona, salimos del bucle
+                                except ValueError:
+                                    continue
 
-                                if ultimo_dia_obj:
-                                    diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
+                            if ultimo_dia_obj:
+                                diferencia_dias = (fecha_de_hoy_obj - ultimo_dia_obj).days
 
-                                    if diferencia_dias == 1:
-                                        racha_actual += 1
-                                    elif diferencia_dias > 1:
-                                        racha_actual = 1
-                                    # Si es 0 o menos, no hacemos nada con la racha
-                            else:
-                            # Es el primer registro válido
-                                racha_actual = 1
+                                if diferencia_dias == 1:
+                                    racha_actual += 1
+                                elif diferencia_dias > 1:
+                                    racha_actual = 1
+                                # Si es 0 o menos, no hacemos nada con la racha
+                        else:
+                        # Es el primer registro válido
+                            racha_actual = 1
         
                             # Guardamos los nuevos valores en el Google Sheet
-                            actualizar_perfil_usuario(gspread_client, username, "Racha_Actual", racha_actual)
-                            actualizar_perfil_usuario(gspread_client, username, "Ultimo_Dia_Registrado", fecha_de_hoy_obj.strftime('%Y-%m-%d'))
+                        actualizar_perfil_usuario(gspread_client, username, "Racha_Actual", racha_actual)
+                        actualizar_perfil_usuario(gspread_client, username, "Ultimo_Dia_Registrado", fecha_de_hoy_obj.strftime('%Y-%m-%d'))
 
-                            if racha_actual > 0 and racha_actual % 10 == 0:
-                                st.session_state['celebrar_racha'] = racha_actual       
+                        if racha_actual > 0 and racha_actual % 10 == 0:
+                            st.session_state['celebrar_racha'] = racha_actual       
+                        
                             
-                            
-                            if len(partes_plan) > 1:
-                                st.info("¡La IA ha re-planificado el resto de tu semana!")
-                            st.success("¡Plan generado y semana actualizada!")
-                            st.info("Actualizando la tabla...")
-                            st.session_state['plan_recien_generado'] = plan_generado
-                            del st.session_state['plan_modificado'] 
-                            time.sleep(2)
-                            st.rerun()
+                        if len(partes_plan) > 1:
+                            st.info("¡La IA ha re-planificado el resto de tu semana!")
+                        st.success("¡Plan generado y semana actualizada!")
+                        st.info("Actualizando la tabla...")
+                        st.session_state['plan_recien_generado'] = plan_generado
+                        del st.session_state['plan_modificado'] 
+                        time.sleep(2)
+                        st.rerun()
 
             st.divider()
     
@@ -314,6 +314,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
