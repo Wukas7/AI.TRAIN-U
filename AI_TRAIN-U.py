@@ -199,6 +199,8 @@ def main():
                         plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_confirmado, fecha_registro)
 
                         if plan_generado:
+                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
+                            plan_diario_detallado = partes_plan[0].strip()
                             fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
                             nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, ""] # El plan se genera después
                             guardar_registro(gspread_client, username, nueva_fila_datos)
@@ -271,6 +273,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
