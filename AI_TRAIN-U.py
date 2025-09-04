@@ -193,7 +193,7 @@ def main():
                                     
                         actualizar_plan_completo(gspread_client, username, dia_a_actualizar, resumen_entreno_hoy, nuevo_estado)
                         plan_confirmado = cargar_plan_semana(gspread_client, username)
-                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...}
+                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
                         historial_detallado_texto = historial_detallado_df.tail(20).to_string()
 
                         plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_confirmado, fecha_registro)
@@ -314,6 +314,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
