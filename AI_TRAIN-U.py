@@ -210,7 +210,7 @@ def main():
                         guardar_registro(gspread_client, username, nueva_fila_datos)
                                                  
                             # ------RACHA DE DIAS------------
-                            racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
+                        racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
                     
 
@@ -314,6 +314,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
