@@ -151,11 +151,74 @@ def main():
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
-                submitted = st.form_submit_button("✅ Generar nuevo plan")
+                submitted = st.form_submit_button("✅ Revisar plan")
 
             historial_detallado_df = cargar_historial_detallado(gspread_client, username)
-        
+           
             if submitted:
+            # Guardamos los datos del formulario en el session_state para usarlos después
+                st.session_state['datos_hoy'] = {
+                    "fecha_registro": fecha_registro,
+                    "entreno_df": entreno_registrado_df,
+                    "entreno_simple": entreno_simple,
+                    "sensaciones": sensaciones,
+                    "calorias": calorias,
+                    "proteinas": proteinas,
+                    "descanso": descanso,
+                    "usar_detallado": usar_entreno_detallado
+                }
+                st.rerun()
+
+                if 'datos_hoy' in st.session_state:
+    
+                    # Recuperamos los datos que el usuario acaba de introducir
+                    datos_hoy = st.session_state['datos_hoy']
+                    fecha_registro = datos_hoy['fecha_registro']
+    
+                    # Calculamos qué toca mañana
+                    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                    dia_manana_nombre = dias_semana[(fecha_registro + timedelta(days=1)).weekday()]
+                    lo_que_toca_manana = plan_semana_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
+    
+                    # Creamos el resumen del entreno de hoy
+                    resumen_entreno_hoy = ""
+
+                    if datos_hoy['usar_detallado']:
+                        resumen_entreno_hoy = "\n".join(f"- {row['Ejercicio']}: ..." for _, row in datos_hoy['entreno_df'].iterrows() if row['Ejercicio'])
+                    else:
+                        resumen_entreno_hoy = datos_hoy['entreno_simple']
+
+                    st.subheader("🔍 Revisión y Confirmación del Plan")
+                    st.write(f"Has registrado tu entrenamiento de hoy. Según el plan, mañana toca: **{lo_que_toca_manana}**.")
+
+                    # --- Lógica de Detección de Conflicto (en Python) ---
+                    conflicto = False
+                    palabras_clave_plan = [palabra for palabra in lo_que_toca_manana.lower().split() if len(palabra) > 3]
+                    if resumen_entreno_hoy and any(palabra in resumen_entreno_hoy.lower() for palabra in palabras_clave_plan):
+                        conflicto = True
+
+                    if conflicto:
+                        st.warning(f"**¡Atención!** Has entrenado `{resumen_entreno_hoy.splitlines()[0]}` y mañana toca `{lo_que_toca_manana}`. Para optimizar tu recuperación, se recomienda cambiar el plan.")
+        
+                        dia_hoy_nombre = dias_semana[fecha_registro.weekday()]
+                        lo_que_tocaba_hoy = plan_semana_actual.get(f"{dia_hoy_nombre}_Plan", "No planificado")
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button(f"Mantener el plan de '{lo_que_toca_manana}' para mañana"):
+                                st.session_state['objetivo_entreno'] = lo_que_toca_manana
+                        with col2:
+                            if st.button(f"🔄 Intercambiar: Hacer mañana '{lo_que_tocaba_hoy}'"):
+                                st.session_state['objetivo_entreno'] = lo_que_tocaba_hoy
+                    else:
+                        st.info("No se detectan conflictos musculares. ¡Todo en orden!")
+                        st.session_state['objetivo_entreno'] = lo_que_toca_manana
+
+
+                    if 'objetivo_entreno' in st.session_state:
+                        with st.spinner("Generando tu plan detallado..."):
+
+
                 if not plan_semana_actual:
                     st.error("Primero debes generar un plan semanal antes de registrar tu día.")
                 else:
@@ -247,6 +310,8 @@ def main():
                             st.success("¡Plan generado y semana actualizada!")
                             st.info("Actualizando la tabla...")
                             time.sleep(3)
+                            del st.session_state['datos_hoy']
+                            del st.session_state['objetivo_entreno']
                             st.rerun()
 
             if st.button("👁️ Mostrar mi plan para mañana"):
@@ -263,6 +328,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
