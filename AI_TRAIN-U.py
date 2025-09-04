@@ -120,12 +120,27 @@ def main():
             st.divider()
                     
             st.header(f"✍️ Registra tu Día")
+            st.info("Registra tu día y, si es necesario, ajusta el plan de los días siguientes en la tabla. Cuando termines, pulsa el botón de abajo.")
 
-            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
-                
-            with st.form("registro_diario_form"):
+            if 'plan_modificado' not in st.session_state:
+                if plan_semana_actual:
+                    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                    plan_editable_data = {dia: plan_semana_actual.get(f"{dia}_Plan", "-") for dia in dias}
+                    st.session_state.plan_modificado = pd.DataFrame([plan_editable_data])
+                else:
+                    st.session_state.plan_modificado = pd.DataFrame()
+
+            if not st.session_state.plan_modificado.empty:
+                st.subheader("Planificación Futura (Editable)")
+                plan_modificado_df = st.data_editor(st.session_state.plan_modificado, key="editor_plan_semanal")
+                st.session_state.plan_modificado = plan_modificado_df # Guardamos los cambios del usuario
+
+            with st.form("registro_y_generacion_form"):
+                st.subheader("Registro del Día Realizado")
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
             
+            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
+                            
                 if usar_entreno_detallado:
                     st.subheader("🏋️ Entrenamiento Detallado")
                     df_entreno_vacio = pd.DataFrame(
@@ -150,30 +165,44 @@ def main():
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
                 
-                submitted_registro = st.form_submit_button("✅ Guardar Registro")
-          
-            if submitted_registro:
-                with st.spinner("Guardando tu registro y actualizando el estado..."):
-                    resumen_entreno_hoy = ""
-                    if usar_entreno_detallado:
-                        resumen_tabla = "\n".join(
-                            f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
-                            for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
-                        )
-                        resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
-                        fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
-                        guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
-                    else:
-                        resumen_entreno_hoy = entreno_simple
+                submitted_final = st.form_submit_button("💾 Guardar Todo y Generar Plan de Mañana")
+
+            if submitted_final:
+                if not plan_semana_actual:
+                    st.error("Primero debes generar un plan semanal.")
+                else:
+                    with st.spinner("Guardando tus datos y generando el nuevo plan..."):
+                        resumen_entreno_hoy = ""
+                        if usar_entreno_detallado:
+                            resumen_tabla = "\n".join(
+                                f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                                for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
+                            )
+                            resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
+                            fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
+                            guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
+                        else:
+                            resumen_entreno_hoy = entreno_simple
             
                     # Guardar el registro general
                     fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
                     nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, ""] # El plan se genera después
                     guardar_registro(gspread_client, username, nueva_fila_datos)
+                    actualizar_fila_plan_semanal(gspread_client, username, st.session_state.plan_modificado)
+                    plan_confirmado = cargar_plan_semana(gspread_client, username)
+            
+                    datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...}
+                    historial_detallado_texto = historial_detallado_df.tail(20).to_string()
+            
+                    # El prompt de la IA ahora es simple. Solo necesita saber qué toca mañana.
+                    plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_confirmado, fecha_registro)
+
+                    if plan_generado:
                                                  
                             # ------RACHA DE DIAS------------
                             racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
+                    
 
                             # Convertimos la fecha de hoy y la última fecha a objetos 'date' para poder compararlas
                             fecha_de_hoy_obj = fecha_registro
@@ -223,6 +252,8 @@ def main():
                                 st.info("¡La IA ha re-planificado el resto de tu semana!")
                             st.success("¡Plan generado y semana actualizada!")
                             st.info("Actualizando la tabla...")
+                            st.session_state['plan_recien_generado'] = plan_generado
+                            del st.session_state['plan_modificado'] 
                             time.sleep(2)
                             st.rerun()
 
@@ -284,6 +315,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
