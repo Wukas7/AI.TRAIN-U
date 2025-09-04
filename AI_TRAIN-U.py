@@ -219,11 +219,11 @@ def main():
                         with st.spinner("Generando tu plan detallado..."):
 
 
-                if not plan_semana_actual:
-                    st.error("Primero debes generar un plan semanal antes de registrar tu día.")
-                else:
-                    with st.spinner("Analizando tu día y preparando el nuevo plan..."):
-                        resumen_entreno_hoy = ""
+                    if not plan_semana_actual:
+                        st.error("Primero debes generar un plan semanal antes de registrar tu día.")
+                    else:
+                        with st.spinner("Analizando tu día y preparando el nuevo plan..."):
+                            resumen_entreno_hoy = ""
                         if usar_entreno_detallado:
                         # Si se usó la tabla, creamos el resumen a partir de ella
                             resumen_tabla = "\n".join(
@@ -328,6 +328,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
