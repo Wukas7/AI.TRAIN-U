@@ -131,7 +131,7 @@ def main():
 
             
             if plan_semana_actual:
-                st.header("🔄 2. Reorganiza tu Semana")
+                st.subheader("🔄 2. Reorganiza tu Semana")
                 st.info("Ajusta el plan para los próximos días si lo necesitas. Cuando estés listo, registra tu día y genera el plan de mañana.")
                 if 'plan_modificado' not in st.session_state:
                     dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -152,10 +152,9 @@ def main():
             with st.form("registro_y_generacion_form"):
                 st.subheader("Registro del Día Realizado")
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
-            
-                usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
-                            
-                if usar_entreno_detallado:
+
+                                           
+                if st.session_state.usar_detallado:
                     st.subheader("🏋️ Entrenamiento Detallado")
                     df_entreno_vacio = pd.DataFrame(
                         [{"Ejercicio": None, "Series": 4, "Repeticiones": None, "Peso_kg": None}]
@@ -186,15 +185,16 @@ def main():
                     st.error("Primero debes generar un plan semanal.")
                 else:
                     with st.spinner("Guardando tus datos y generando el nuevo plan..."):
+                        usar_entreno_detallado_en_submit = st.session_state.get('usar_detallado', True)
                         resumen_entreno_hoy = ""
-                        if usar_entreno_detallado:
+                        if usar_entreno_detallado_en_submit:
                             resumen_tabla = "\n".join(f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'])
                             resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
                             fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
                             guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
                         else:
                             resumen_entreno_hoy = entreno_simple
-            
+                        
                     # Guardar el registro general
                         actualizar_fila_plan_semanal(gspread_client, username, st.session_state.plan_modificado)
                         dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -290,6 +290,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
