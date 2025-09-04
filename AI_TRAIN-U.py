@@ -119,17 +119,17 @@ def main():
 
             st.divider()
                     
-            st.header(f"✍️ Registro del Día")
+            st.header(f"✍️ Registra tu Día")
 
-            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado (ejercicios, series, peso)", value=True)
+            usar_entreno_detallado = st.toggle("Añadir entrenamiento detallado", value=True)
                 
             with st.form("registro_diario_form"):
                 fecha_registro = st.date_input("¿Para qué día es este registro?", value=datetime.today(), max_value=datetime.today())
             
                 if usar_entreno_detallado:
-                    st.subheader("🏋️ Registra tu Entrenamiento Detallado")
+                    st.subheader("🏋️ Entrenamiento Detallado")
                     df_entreno_vacio = pd.DataFrame(
-                        [{"Ejercicio": None, "Series": 1, "Repeticiones": None, "Peso_kg": None}]
+                        [{"Ejercicio": None, "Series": 4, "Repeticiones": None, "Peso_kg": None}]
                     )
                     entreno_registrado_df = st.data_editor(
                         df_entreno_vacio, num_rows="dynamic",
@@ -140,123 +140,38 @@ def main():
                             "Peso_kg": st.column_config.NumberColumn("Peso (kg)", min_value=0.0, format="%.2f kg", required=True),
                         }
                     )
-                # Dejamos un campo de texto simple por si quieren añadir notas, pero no será el principal
                     entreno_simple = st.text_area("Notas adicionales del entreno (opcional)")
                 else:
-                    st.subheader("🏃 Registra tu Entrenamiento Simple")
+                    st.subheader("🏃 Entrenamiento Simple")
                     entreno_simple = st.text_area("Describe tu entrenamiento (ej: 'Salí a correr 45 min a ritmo suave')")
 
-            
                 sensaciones = st.text_area("¿Cómo te sientes?")
                 calorias = st.number_input("Calorías consumidas (aprox.)", min_value=0, step=100)
                 proteinas = st.number_input("Proteínas consumidas (g)", min_value=0, step=10)
                 descanso = st.slider("¿Cuántas horas has dormido?", 0.0, 12.0, 8.0, 0.5)
-                submitted = st.form_submit_button("✅ Revisar plan")
-
-            historial_detallado_df = cargar_historial_detallado(gspread_client, username)
-           
-            if submitted:
-            # Guardamos los datos del formulario en el session_state para usarlos después
-                st.session_state['datos_hoy'] = {
-                    "fecha_registro": fecha_registro,
-                    "entreno_df": entreno_registrado_df,
-                    "entreno_simple": entreno_simple,
-                    "sensaciones": sensaciones,
-                    "calorias": calorias,
-                    "proteinas": proteinas,
-                    "descanso": descanso,
-                    "usar_detallado": usar_entreno_detallado
-                }
-                st.rerun()
-
-                if 'datos_hoy' in st.session_state:
-    
-                    # Recuperamos los datos que el usuario acaba de introducir
-                    datos_hoy = st.session_state['datos_hoy']
-                    fecha_registro = datos_hoy['fecha_registro']
-    
-                    # Calculamos qué toca mañana
-                    dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                    dia_manana_nombre = dias_semana[(fecha_registro + timedelta(days=1)).weekday()]
-                    lo_que_toca_manana = plan_semana_actual.get(f"{dia_manana_nombre}_Plan", "Día libre")
-    
-                    # Creamos el resumen del entreno de hoy
+                
+                submitted_registro = st.form_submit_button("✅ Guardar Registro")
+          
+            if submitted_registro:
+                with st.spinner("Guardando tu registro y actualizando el estado..."):
                     resumen_entreno_hoy = ""
-
-                    if datos_hoy['usar_detallado']:
-                        resumen_entreno_hoy = "\n".join(f"- {row['Ejercicio']}: ..." for _, row in datos_hoy['entreno_df'].iterrows() if row['Ejercicio'])
+                    if usar_entreno_detallado:
+                        resumen_tabla = "\n".join(
+                            f"- {row['Ejercicio']}: {row['Serie']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
+                            for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
+                        )
+                        resumen_entreno_hoy = resumen_tabla + (f"\n\n**Notas:**\n{entreno_simple}" if entreno_simple else "")
+                        fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
+                        guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
                     else:
-                        resumen_entreno_hoy = datos_hoy['entreno_simple']
-
-                    st.subheader("🔍 Revisión y Confirmación del Plan")
-                    st.write(f"Has registrado tu entrenamiento de hoy. Según el plan, mañana toca: **{lo_que_toca_manana}**.")
-
-                    # --- Lógica de Detección de Conflicto (en Python) ---
-                    conflicto = False
-                    palabras_clave_plan = [palabra for palabra in lo_que_toca_manana.lower().split() if len(palabra) > 3]
-                    if resumen_entreno_hoy and any(palabra in resumen_entreno_hoy.lower() for palabra in palabras_clave_plan):
-                        conflicto = True
-
-                    if conflicto:
-                        st.warning(f"**¡Atención!** Has entrenado `{resumen_entreno_hoy.splitlines()[0]}` y mañana toca `{lo_que_toca_manana}`. Para optimizar tu recuperación, se recomienda cambiar el plan.")
-        
-                        dia_hoy_nombre = dias_semana[fecha_registro.weekday()]
-                        lo_que_tocaba_hoy = plan_semana_actual.get(f"{dia_hoy_nombre}_Plan", "No planificado")
-
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button(f"Mantener el plan de '{lo_que_toca_manana}' para mañana"):
-                                st.session_state['objetivo_entreno'] = lo_que_toca_manana
-                        with col2:
-                            if st.button(f"🔄 Intercambiar: Hacer mañana '{lo_que_tocaba_hoy}'"):
-                                st.session_state['objetivo_entreno'] = lo_que_tocaba_hoy
-                    else:
-                        st.info("No se detectan conflictos musculares. ¡Todo en orden!")
-                        st.session_state['objetivo_entreno'] = lo_que_toca_manana
-
-
-                    if 'objetivo_entreno' in st.session_state:
-                        with st.spinner("Generando tu plan detallado..."):
-
-
-                    if not plan_semana_actual:
-                        st.error("Primero debes generar un plan semanal antes de registrar tu día.")
-                    else:
-                        with st.spinner("Analizando tu día y preparando el nuevo plan..."):
-                            resumen_entreno_hoy = ""
-                        if usar_entreno_detallado:
-                        # Si se usó la tabla, creamos el resumen a partir de ella
-                            resumen_tabla = "\n".join(
-                                f"- {row['Ejercicio']}: {row['Series']}x{row['Repeticiones']} @ {row['Peso_kg']}kg" 
-                                for _, row in entreno_registrado_df.iterrows() if row['Ejercicio'] and pd.notna(row.get('Repeticiones'))
-                            )
-                            resumen_entreno_hoy = resumen_tabla
-                            if entreno_simple: # Si el campo de notas no está vacío
-                                resumen_entreno_hoy += f"\n\n**Notas Adicionales:**\n{entreno_simple}"
-                                
-                            # Guardamos los datos detallados
-                            fecha_guardado_str = fecha_registro.strftime('%Y-%m-%d')
-                            guardar_entreno_detallado(gspread_client, username, fecha_guardado_str, entreno_registrado_df)
-                        else:
-                            # Si se usó el texto simple, ese es nuestro resumen
-                            resumen_entreno_hoy = entreno_simple
-
-                    
-                        datos_de_hoy = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, "calorias": calorias, "proteinas": proteinas, "descanso": descanso}
-
-                        # Preparamos un resumen del historial detallado para la IA
-                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
-        
-                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_de_hoy, plan_semana_actual, fecha_registro)
-
-                        if plan_generado:
-                            partes_plan = plan_generado.split("### 🔄 Sugerencia de Re-planificación Semanal")
-                            plan_diario_detallado = partes_plan[0].strip()
-                            fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
-                            nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, plan_diario_detallado]                                
-                            guardar_registro(gspread_client, username, nueva_fila_datos)
-                                           
-                            #RACHA DE DIAS
+                        resumen_entreno_hoy = entreno_simple
+            
+                    # Guardar el registro general
+                    fecha_guardado = fecha_registro.strftime('%Y-%m-%d')
+                    nueva_fila_datos = [fecha_guardado, calorias, proteinas, resumen_entreno_hoy, sensaciones, descanso, ""] # El plan se genera después
+                    guardar_registro(gspread_client, username, nueva_fila_datos)
+                                                 
+                            # ------RACHA DE DIAS------------
                             racha_actual = int(perfil_usuario.get("Racha_Actual", 0))
                             ultimo_dia_str = perfil_usuario.get("Ultimo_Dia_Registrado", None)
 
@@ -304,16 +219,57 @@ def main():
                                     
                             actualizar_plan_completo(gspread_client, username, dia_a_actualizar, resumen_entreno_hoy, nuevo_estado)
 
-                            st.session_state['plan_recien_generado'] = plan_diario_detallado
                             if len(partes_plan) > 1:
                                 st.info("¡La IA ha re-planificado el resto de tu semana!")
                             st.success("¡Plan generado y semana actualizada!")
                             st.info("Actualizando la tabla...")
-                            time.sleep(3)
-                            del st.session_state['datos_hoy']
-                            del st.session_state['objetivo_entreno']
+                            time.sleep(2)
                             st.rerun()
 
+            st.divider()
+    
+            # --- (NUEVO) Panel de Reorganización Semanal y Generación de Plan ---
+            if plan_semana_actual:
+                st.header("🔄 2. Reorganiza tu Semana y Genera el Plan")
+                st.info("Ajusta el plan para los próximos días si lo necesitas. Cuando estés listo, genera el plan para mañana.")
+        
+                dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        
+                # Preparamos los datos para la tabla editable
+                plan_editable_data = {}
+                for dia in dias:
+                    plan_editable_data[f"{dia}_Plan"] = plan_semana_actual.get(f"{dia}_Plan", "-")
+        
+                df_plan_editable = pd.DataFrame([plan_editable_data])
+        
+                # Creamos una copia para que el usuario la edite
+                plan_modificado_df = st.data_editor(df_plan_editable)
+
+                if st.button("💾 Guardar Cambios y Generar Plan para Mañana"):
+                    with st.spinner("Guardando tu nuevo plan y generando la rutina de mañana..."):
+                        # 1. Guardamos la nueva estructura en el Google Sheet
+                        actualizar_fila_plan_semanal(gspread_client, username, plan_modificado_df)
+
+                        # 2. Cargamos el plan recién actualizado para pasárselo a la IA
+                        plan_semana_confirmado = cargar_plan_semana(gspread_client, username)
+                    
+                        # 3. Llamamos a la IA con el objetivo claro
+                        datos_ultimo_dia = {"entreno": resumen_entreno_hoy, "sensaciones": sensaciones, ...} # Necesitamos recuperar estos datos
+                        historial_detallado_texto = historial_detallado_df.tail(20).to_string()
+                
+                        # Usamos la fecha del último registro guardado
+                        fecha_ultimo_registro = #...
+                        plan_generado = generar_plan_diario(perfil_usuario, historial_detallado_texto, datos_ultimo_dia, plan_semana_confirmado, fecha_ultimo_registro)
+
+                        if plan_generado:
+                            # Guardamos el plan generado en el registro del día anterior
+                            actualizar_celda_registro(gspread_client, username, fecha_ultimo_registro, plan_generado)
+                    
+                            st.session_state['plan_recien_generado'] = plan_generado
+                            st.rerun()
+            
+          
+            
             if st.button("👁️ Mostrar mi plan para mañana"):
                 if not historial_df.empty:
                     if 'Plan_Generado' in historial_df.columns:
@@ -328,6 +284,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
